@@ -1,5 +1,5 @@
 package server;
-import message.*;
+import components.*;
 
 
 import java.io.IOException;
@@ -19,7 +19,6 @@ public class ChatServer {
     private int port;
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
-
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
     private final BlockingDeque<Message> messageQueue = new LinkedBlockingDeque<>();
 
@@ -30,14 +29,12 @@ public class ChatServer {
     private void start() throws IOException {
         new Thread(new Writer()).start();
 
-        try (ServerSocket ssocket = new ServerSocket(port)) {
-            System.out.println("Server started on " + ssocket);
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Server started on " + serverSocket);
 
             while (true) {
-                Socket sock = ssocket.accept();
-
+                Socket sock = serverSocket.accept();
                 connections.add(new Connection(sock));
-
                 new Thread(new Reader(sock)).start();
             }
         }
@@ -56,29 +53,23 @@ public class ChatServer {
 
             try {
                 objIn = new ObjectInputStream(socket.getInputStream());
-
                 System.out.printf("%s connected\n", socket.getInetAddress().getHostAddress());
 
                 while (!Thread.currentThread().isInterrupted()) {
                     Message msg = (Message) objIn.readObject();
-
                     messageQueue.add(msg);
-
                     printMessage(msg);
                 }
 
             }
             catch (IOException e) {
                 System.err.println("Disconnected " + socket.getInetAddress().getHostAddress());
-
-//                throw new ChatUncheckedException("Error acquire input stream", e);
             }
             catch (ClassNotFoundException e) {
-                throw new ChatUncheckedException("Error de-serializing message", e);
+                throw new ChatUncheckedException("Error de-serializing components", e);
             }
             finally {
                 connections.removeIf(connection -> connection.socket == socket);
-
                 IOUtils.closeQuietly(socket);
             }
         }
@@ -99,7 +90,7 @@ public class ChatServer {
                             connection.objOut.flush();
                         }
                         catch (IOException e) {
-                            System.err.printf("Error sending message %s to %s\n", msg, connection.socket);
+                            System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
 
                             connections.remove(connection);
                             IOUtils.closeQuietly(connection.socket);
@@ -130,11 +121,8 @@ public class ChatServer {
     public static void main(String[] args) throws IOException {
         if (args == null || args.length == 0)
             throw new IllegalArgumentException("Port must be specified");
-
         int port = Integer.parseInt(args[0]);
-
         ChatServer chatServer = new ChatServer(port);
-
         chatServer.start();
     }
 }

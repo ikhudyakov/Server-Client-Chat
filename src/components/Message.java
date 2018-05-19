@@ -1,4 +1,4 @@
-package message;
+package components;
 
 import java.io.Serializable;
 
@@ -6,9 +6,7 @@ import java.io.Serializable;
 public class Message implements Serializable {
 
     private long timestamp;
-
     private String sender;
-
     private String text;
 
     public Message(long timestamp, String sender, String text) {
@@ -47,7 +45,7 @@ public class Message implements Serializable {
 
     @Override
     public String toString() {
-        return "message.Message{" +
+        return "components.Message{" +
                 "timestamp=" + timestamp +
                 ", sender='" + sender + '\'' +
                 ", text='" + text + '\'' +

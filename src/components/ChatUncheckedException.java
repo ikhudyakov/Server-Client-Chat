@@ -1,4 +1,4 @@
-package message;
+package components;
 
 public class ChatUncheckedException extends RuntimeException {
     public ChatUncheckedException(String message) {

@@ -1,4 +1,4 @@
-package message;
+package components;
 
 import java.io.Closeable;
 import java.io.IOException;
