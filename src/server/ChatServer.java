@@ -40,6 +40,40 @@ public class ChatServer {
         }
     }
 
+    private class Auth implements Runnable{
+
+        private final Socket socket;
+
+        private Auth(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            ObjectInputStream objIn;
+
+            try {
+                objIn = new ObjectInputStream(socket.getInputStream());
+                System.out.printf("%s connected\n", socket.getInetAddress().getHostAddress());
+
+                while (!Thread.currentThread().isInterrupted()) {
+                    Message msg = (Message) objIn.readObject();
+                    messageQueue.add(msg);
+                    printMessage(msg);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            finally {
+                connections.removeIf(connection -> connection.socket == socket);
+                IOUtils.closeQuietly(socket);
+            }
+        }
+    }
+
     private class Reader implements Runnable {
         private final Socket socket;
 

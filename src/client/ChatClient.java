@@ -17,6 +17,7 @@ public class ChatClient {
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
     private SocketAddress serverAddress;
     private String name;
+    private String password;
     private Scanner scanner;
     private Socket socket;
     private ObjectOutputStream objOut;
@@ -27,8 +28,17 @@ public class ChatClient {
     }
 
     private void start() throws IOException {
-        System.out.println("Enter your name: ");
+        System.out.println("Enter your login: ");
         name = scanner.nextLine();
+        System.out.println("Enter your password: ");
+        password = scanner.nextLine();
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
+
         openConnection();
 
         Thread reader = new Thread(new Reader(socket));
@@ -100,6 +110,20 @@ public class ChatClient {
         System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
+    private void buildAndSendAuth(String auth) {
+        Message message = new Message(System.currentTimeMillis(), name, password);
+
+        try {
+            objOut.writeObject(message);
+            objOut.flush();
+        }
+        catch (IOException e) {
+            IOUtils.closeQuietly(socket);
+
+            throw new ChatUncheckedException("Error sending components", e);
+        }
+    }
+
     private void buildAndSendMessage(String msg) {
         Message message = new Message(System.currentTimeMillis(), name, msg);
 
@@ -112,7 +136,6 @@ public class ChatClient {
 
             throw new ChatUncheckedException("Error sending components", e);
         }
-
     }
 
     private static SocketAddress parseAddress(String addr) {
