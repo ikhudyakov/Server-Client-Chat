@@ -21,6 +21,7 @@ public class ChatClient {
     private Scanner scanner;
     private Socket socket;
     private ObjectOutputStream objOut;
+    private boolean check;
 
     public ChatClient(SocketAddress serverAddress, Scanner scanner) {
         this.serverAddress = serverAddress;
@@ -32,21 +33,21 @@ public class ChatClient {
         name = scanner.nextLine();
         System.out.println("Enter your password: ");
         password = scanner.nextLine();
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        });
 
         openConnection();
 
+        buildAndSendAuth(name, password);
+
+        Thread readerAuth = new Thread(new ReaderAuth(socket));
         Thread reader = new Thread(new Reader(socket));
+        readerAuth.start();
+
+
         reader.start();
 
-        System.out.println("Enter components to send: ");
+        //System.out.println("Enter components to send: ");
 
-        while (true) {
+        /*while (true) {
             String msg = scanner.nextLine();
 
             if ("/exit".equals(msg)) {
@@ -62,7 +63,7 @@ public class ChatClient {
 
             if (msg != null && !msg.isEmpty())
                 buildAndSendMessage(msg);
-        }
+        }*/
     }
 
     private void openConnection() {
@@ -106,15 +107,44 @@ public class ChatClient {
         }
     }
 
+    private class ReaderAuth implements Runnable {
+        private final Socket socket;
+        private ReaderAuth(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                ObjectInputStream objIn = new ObjectInputStream(socket.getInputStream());
+
+                while (!Thread.currentThread().isInterrupted()) {
+                    check = (boolean) objIn.readObject();
+                    System.out.println(check);
+                }
+            }
+            catch (IOException e) {
+                throw new ChatUncheckedException("Error reading components", e);
+            }
+            catch (ClassNotFoundException e) {
+                throw new ChatUncheckedException("Error de-serializing components", e);
+            }
+            finally {
+                IOUtils.closeQuietly(socket);
+                System.exit(1);
+            }
+        }
+    }
+
     private void printMessage(Message msg) {
         System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
-    private void buildAndSendAuth(String auth) {
-        Message message = new Message(System.currentTimeMillis(), name, password);
+    private void buildAndSendAuth(String name, String password) {
+        Registration registration = new Registration(name, password);
 
         try {
-            objOut.writeObject(message);
+            objOut.writeObject(registration);
             objOut.flush();
         }
         catch (IOException e) {

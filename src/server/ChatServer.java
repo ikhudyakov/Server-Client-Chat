@@ -1,4 +1,5 @@
 package server;
+import client.Registration;
 import components.*;
 
 
@@ -9,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -20,7 +22,9 @@ public class ChatServer {
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
+    private Connection authConnections = null;
     private final BlockingDeque<Message> messageQueue = new LinkedBlockingDeque<>();
+
 
     public ChatServer(int port) {
         this.port = port;
@@ -33,43 +37,14 @@ public class ChatServer {
             System.out.println("Server started on " + serverSocket);
 
             while (true) {
-                Socket sock = serverSocket.accept();
-                connections.add(new Connection(sock));
-                new Thread(new Reader(sock)).start();
-            }
-        }
-    }
+                // TODO authCheck
 
-    private class Auth implements Runnable{
+                    Socket sock = serverSocket.accept();
+                    connections.add(new Connection(sock));
 
-        private final Socket socket;
+                    new Thread(new ReaderAuth(sock)).start();
 
-        private Auth(Socket socket) {
-            this.socket = socket;
-        }
-
-        @Override
-        public void run() {
-            ObjectInputStream objIn;
-
-            try {
-                objIn = new ObjectInputStream(socket.getInputStream());
-                System.out.printf("%s connected\n", socket.getInetAddress().getHostAddress());
-
-                while (!Thread.currentThread().isInterrupted()) {
-                    Message msg = (Message) objIn.readObject();
-                    messageQueue.add(msg);
-                    printMessage(msg);
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            finally {
-                connections.removeIf(connection -> connection.socket == socket);
-                IOUtils.closeQuietly(socket);
+                    new Thread(new Reader(sock)).start();
             }
         }
     }
@@ -108,6 +83,56 @@ public class ChatServer {
             }
         }
     }
+    private class ReaderAuth implements Runnable {
+        private final Socket socket;
+
+        private ReaderAuth(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            ObjectInputStream objIn;
+
+            try {
+                authConnections = new Connection(socket);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                objIn = new ObjectInputStream(socket.getInputStream());
+
+                Registration auth = (Registration) objIn.readObject();
+
+                if(auth.getLogin().equals("test") && auth.getPassword().equals("12345")){
+                    System.out.println(auth.getLogin() + " " + "OK");
+                    Thread thread = new Thread(new CheckedAuth(true));
+                    thread.start();
+                    thread.join();
+
+                }
+                else {
+                    System.out.println(auth.getLogin() + " " + "ERROR");
+                    Thread thread = new Thread(new CheckedAuth(false));
+                    thread.start();
+                    thread.join();
+                }
+
+            }
+            catch (IOException e) {
+                System.err.println("Disconnected " + socket.getInetAddress().getHostAddress());
+            }
+            catch (ClassNotFoundException e) {
+                throw new ChatUncheckedException("Error de-serializing components", e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                connections.removeIf(connection -> connection.socket == socket);
+                IOUtils.closeQuietly(socket);
+            }
+        }
+    }
 
     private class Writer implements Runnable {
         @Override
@@ -134,6 +159,30 @@ public class ChatServer {
             }
             catch (InterruptedException e) {
                 throw new ChatUncheckedException("Writer was interrupted", e);
+            }
+        }
+    }
+
+    private class CheckedAuth implements Runnable {
+        private boolean check;
+
+        public CheckedAuth(boolean check) {
+            this.check = check;
+        }
+
+        @Override
+        public void run() {
+            Thread.currentThread().setName("CheckedAuth");
+
+            while (!Thread.currentThread().isInterrupted()) {
+
+                    try {
+                        authConnections.objOut.writeObject(check);
+                        authConnections.objOut.flush();
+                    }
+                    catch (IOException e) {
+                        //System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+                }
             }
         }
     }
