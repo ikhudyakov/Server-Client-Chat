@@ -112,7 +112,6 @@ public class ChatClient {
 
             throw new ChatUncheckedException("Error sending components", e);
         }
-
     }
 
     private static SocketAddress parseAddress(String addr) {
