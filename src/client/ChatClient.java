@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
@@ -21,6 +22,7 @@ public class ChatClient {
     private Scanner scanner;
     private Socket socket;
     private ObjectOutputStream objOut;
+    //private ObjectOutputStream objOutAuth;
     private boolean check;
 
     public ChatClient(SocketAddress serverAddress, Scanner scanner) {
@@ -29,33 +31,28 @@ public class ChatClient {
     }
 
     private void start() throws IOException {
-        System.out.println("Enter your login: ");
+        System.out.println("Enter your name: ");
+
         name = scanner.nextLine();
-        System.out.println("Enter your password: ");
-        password = scanner.nextLine();
 
         openConnection();
 
-        buildAndSendAuth(name, password);
-
-        Thread readerAuth = new Thread(new ReaderAuth(socket));
         Thread reader = new Thread(new Reader(socket));
-        readerAuth.start();
-
-
         reader.start();
 
-        //System.out.println("Enter components to send: ");
+        System.out.println("Enter message to send: ");
 
-        /*while (true) {
+        while (true) {
             String msg = scanner.nextLine();
 
             if ("/exit".equals(msg)) {
                 IOUtils.closeQuietly(socket);
+
                 break;
             }
             else if ("/nick".equals(msg)) {
                 System.out.println("Enter new name:");
+
                 name = scanner.nextLine();
 
                 continue;
@@ -63,14 +60,67 @@ public class ChatClient {
 
             if (msg != null && !msg.isEmpty())
                 buildAndSendMessage(msg);
-        }*/
+        }
     }
+
+
+
+    /*private void start() throws IOException {
+
+
+        openConnection();
+
+        Thread reader = new Thread(new Reader(socket));
+        reader.start();
+
+        while (true) {
+            //new Thread(new ReaderAuth(socket)).start();
+            System.out.println("Enter your login: ");
+            name = scanner.nextLine();
+            System.out.println("Enter your password: ");
+            password = scanner.nextLine();
+            buildAndSendAuth(name, password);
+            if (check) break;
+        }
+
+//        if(check){
+//            Thread reader = new Thread(new Reader(socket));
+//            reader.start();
+//        }
+
+            *//*if(check) {
+                Thread reader = new Thread(new Reader(socket));
+                reader.start();
+                System.out.println("Enter components to send: ");
+
+                while (true) {
+                    String msg = scanner.nextLine();
+
+                    if ("/exit".equals(msg)) {
+                        IOUtils.closeQuietly(socket);
+                        break;
+                    }
+                    else if ("/nick".equals(msg)) {
+                        System.out.println("Enter new name:");
+                        name = scanner.nextLine();
+
+                        continue;
+                    }
+
+                    if (msg != null && !msg.isEmpty())
+                        buildAndSendMessage(msg);
+                }
+            }*//*
+        }*/
+
 
     private void openConnection() {
         try {
             socket = new Socket();
             socket.connect(serverAddress);
             objOut = new ObjectOutputStream(socket.getOutputStream());
+            //objOutAuth = new ObjectOutputStream(socket.getOutputStream());
+            System.out.println("Start socket");
         }
         catch (IOException e) {
             IOUtils.closeQuietly(socket);
@@ -88,6 +138,8 @@ public class ChatClient {
         public void run() {
             try {
                 ObjectInputStream objIn = new ObjectInputStream(socket.getInputStream());
+
+
 
                 while (!Thread.currentThread().isInterrupted()) {
                     Message message = (Message) objIn.readObject();
@@ -116,11 +168,12 @@ public class ChatClient {
         @Override
         public void run() {
             try {
-                ObjectInputStream objIn = new ObjectInputStream(socket.getInputStream());
+                ObjectInputStream objInAuth = new ObjectInputStream(socket.getInputStream());
 
                 while (!Thread.currentThread().isInterrupted()) {
-                    check = (boolean) objIn.readObject();
+                    check = (boolean) objInAuth.readObject();
                     System.out.println(check);
+                    //if(check) Thread.currentThread().interrupt();
                 }
             }
             catch (IOException e) {
@@ -142,15 +195,19 @@ public class ChatClient {
 
     private void buildAndSendAuth(String name, String password) {
         Registration registration = new Registration(name, password);
+        Thread thread = new Thread(new ReaderAuth(socket));
+        thread.start();
 
         try {
             objOut.writeObject(registration);
             objOut.flush();
+
         }
         catch (IOException e) {
+            e.printStackTrace();
             IOUtils.closeQuietly(socket);
 
-            throw new ChatUncheckedException("Error sending components", e);
+            //throw new ChatUncheckedException("Error sending components", e);
         }
     }
 
