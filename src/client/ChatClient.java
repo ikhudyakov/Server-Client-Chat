@@ -4,6 +4,7 @@ import components.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -29,12 +30,14 @@ public class ChatClient {
     }
 
     private void start() throws IOException {
+
+        openConnection();
+
         System.out.println("Enter your login: ");
         name = scanner.nextLine();
         System.out.println("Enter your password: ");
         password = scanner.nextLine();
 
-        openConnection();
 
         buildAndSendAuth(name, password);
 
@@ -71,12 +74,16 @@ public class ChatClient {
             socket = new Socket();
             socket.connect(serverAddress);
             objOut = new ObjectOutputStream(socket.getOutputStream());
+            byte[] header = {1, 1};
+            OutputStream out = socket.getOutputStream();
+            out.write(header);
         }
         catch (IOException e) {
             IOUtils.closeQuietly(socket);
             throw new ChatUncheckedException("Error connecting to server", e);
         }
     }
+
 
     private class Reader implements Runnable {
         private final Socket socket;
