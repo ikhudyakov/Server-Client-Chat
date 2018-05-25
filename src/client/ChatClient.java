@@ -118,7 +118,7 @@ public class ChatClient {
             if (msg != null && !msg.isEmpty())
                 buildAndSendMessage(msg);
         }*/
-    }
+
 
     private void openConnection() {
         try {
