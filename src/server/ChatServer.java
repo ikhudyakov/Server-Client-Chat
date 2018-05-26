@@ -4,6 +4,7 @@ import components.*;
 
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
@@ -24,8 +25,8 @@ public class ChatServer {
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
-    private final Set<ConnectionAuth> authConnections = new CopyOnWriteArraySet<>();
     private final BlockingDeque<Message> messageQueue = new LinkedBlockingDeque<>();
+    byte [] header = {(byte) 0xAA, (byte) 0xAA};
 
 
     public ChatServer(int port) {
@@ -34,32 +35,22 @@ public class ChatServer {
 
     private void start() throws IOException {
 
-
-        //new Thread(new Writer()).start();
-
+        new Thread(new Writer()).start();
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server started on " + serverSocket);
 
             while (true) {
-                // TODO authCheck
-
 
                 Socket sock = serverSocket.accept();
                 connections.add(new Connection(sock));
-                ObjectInputStream in = (ObjectInputStream) sock.getInputStream();
-                byte [] buf = new byte[2];
-                byte [] header = {1, 1};
+                InputStream in = sock.getInputStream();
+                byte[] buf = new byte[2];
                 in.read(buf);
-
-                if (Arrays.equals(buf, header)){
+                if (Arrays.equals(buf, header)) {
                     System.out.println("Все ОК");
                     new Thread(new Reader(sock)).start();
                 }
-
-                //new Thread(new ReaderAuth(sock)).start();
-
-                //new Thread(new Reader(sock)).start();
             }
         }
     }
@@ -98,50 +89,6 @@ public class ChatServer {
             }
         }
     }
-    private class ReaderAuth implements Runnable {
-        private final Socket socket;
-
-        private ReaderAuth(Socket socket) {
-            this.socket = socket;
-        }
-
-        @Override
-        public void run() {
-            ObjectInputStream objIn;
-
-            try {
-                authConnections.add(new ConnectionAuth(socket));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                objIn = new ObjectInputStream(socket.getInputStream());
-
-                Registration auth = (Registration) objIn.readObject();
-
-                if(auth.getLogin().equals("test") && auth.getPassword().equals("12345")){
-                    System.out.println(auth.getLogin() + " " + "OK");
-                    new Thread(new CheckedAuth(true)).start();
-
-                }
-                else {
-                    System.out.println(auth.getLogin() + " " + "ERROR");
-                    new Thread(new CheckedAuth(false)).start();
-                }
-
-            }
-            catch (IOException e) {
-                System.err.println("Disconnected " + socket.getInetAddress().getHostAddress());
-            }
-            catch (ClassNotFoundException e) {
-                throw new ChatUncheckedException("Error de-serializing components", e);
-            } finally {
-                authConnections.removeIf(connectionAuth -> connectionAuth.socket == socket);
-                IOUtils.closeQuietly(socket);
-            }
-        }
-    }
 
     private class Writer implements Runnable {
         @Override
@@ -172,35 +119,6 @@ public class ChatServer {
         }
     }
 
-    private class CheckedAuth implements Runnable {
-        private boolean check;
-
-        public CheckedAuth(boolean check) {
-            this.check = check;
-        }
-
-        @Override
-        public void run() {
-            Thread.currentThread().setName("CheckedAuth");
-
-            while (!Thread.currentThread().isInterrupted()) {
-
-                for (ConnectionAuth connectionAuth : authConnections) {
-                    try {
-                        connectionAuth.objOutAuth.writeObject(check);
-                        connectionAuth.objOutAuth.flush();
-                    }
-                    catch (IOException e) {
-
-
-                        connections.remove(connectionAuth);
-                        IOUtils.closeQuietly(connectionAuth.socket);
-                    }
-                }
-            }
-        }
-    }
-
     private static class Connection {
         final Socket socket;
         final ObjectOutputStream objOut;
@@ -210,21 +128,12 @@ public class ChatServer {
             this.objOut = new ObjectOutputStream(socket.getOutputStream());
         }
     }
-    private static class ConnectionAuth {
-        final Socket socket;
-        final ObjectOutputStream objOutAuth;
-
-        ConnectionAuth(Socket socket) throws IOException {
-            this.socket = socket;
-            this.objOutAuth = new ObjectOutputStream(socket.getOutputStream());
-        }
-    }
 
     private void printMessage(Message msg) {
         System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         if (args == null || args.length == 0)
             throw new IllegalArgumentException("Port must be specified");
         int port = Integer.parseInt(args[0]);

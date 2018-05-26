@@ -33,18 +33,11 @@ public class ChatClient {
 
         openConnection();
 
+
         System.out.println("Enter your login: ");
         name = scanner.nextLine();
-        System.out.println("Enter your password: ");
-        password = scanner.nextLine();
 
 
-        buildAndSendAuth(name, password);
-        System.out.println("Enter your name: ");
-
-        name = scanner.nextLine();
-
-        openConnection();
 
         Thread reader = new Thread(new Reader(socket));
         reader.start();
@@ -73,63 +66,18 @@ public class ChatClient {
     }
 
 
-
-    /*private void start() throws IOException {
-
-
-        openConnection();
-
-        Thread reader = new Thread(new Reader(socket));
-        reader.start();
-
-        while (true) {
-            //new Thread(new ReaderAuth(socket)).start();
-            System.out.println("Enter your login: ");
-            name = scanner.nextLine();
-            System.out.println("Enter your password: ");
-            password = scanner.nextLine();
-            buildAndSendAuth(name, password);
-            if (check) break;
-        }
-
-        Thread readerAuth = new Thread(new ReaderAuth(socket));
-        Thread reader = new Thread(new Reader(socket));
-        readerAuth.start();
-
-
-        reader.start();
-
-        //System.out.println("Enter components to send: ");
-
-        /*while (true) {
-            String msg = scanner.nextLine();
-
-            if ("/exit".equals(msg)) {
-                IOUtils.closeQuietly(socket);
-                break;
-            }
-            else if ("/nick".equals(msg)) {
-                System.out.println("Enter new name:");
-                name = scanner.nextLine();
-
-                continue;
-            }
-
-            if (msg != null && !msg.isEmpty())
-                buildAndSendMessage(msg);
-        }*/
-
-
     private void openConnection() {
         try {
             socket = new Socket();
             socket.connect(serverAddress);
             objOut = new ObjectOutputStream(socket.getOutputStream());
-            //objOutAuth = new ObjectOutputStream(socket.getOutputStream());
-            System.out.println("Start socket");
-            byte[] header = {1, 1};
+            byte[] header = {(byte) 0xAA, (byte) 0xAA};
             OutputStream out = socket.getOutputStream();
             out.write(header);
+            //objOutAuth = new ObjectOutputStream(socket.getOutputStream());
+            System.out.println("Start socket");
+
+
         }
         catch (IOException e) {
             IOUtils.closeQuietly(socket);
@@ -166,56 +114,9 @@ public class ChatClient {
         }
     }
 
-    private class ReaderAuth implements Runnable {
-        private final Socket socket;
-        private ReaderAuth(Socket socket) {
-            this.socket = socket;
-        }
-
-        @Override
-        public void run() {
-            try {
-                ObjectInputStream objIn = new ObjectInputStream(socket.getInputStream());
-
-                while (!Thread.currentThread().isInterrupted()) {
-                    check = (boolean) objIn.readObject();
-                    System.out.println(check);
-                    //if(check) Thread.currentThread().interrupt();
-                }
-            }
-            catch (IOException e) {
-                throw new ChatUncheckedException("Error reading components", e);
-            }
-            catch (ClassNotFoundException e) {
-                throw new ChatUncheckedException("Error de-serializing components", e);
-            }
-            finally {
-                IOUtils.closeQuietly(socket);
-                System.exit(1);
-            }
-        }
-    }
 
     private void printMessage(Message msg) {
         System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
-    }
-
-    private void buildAndSendAuth(String name, String password) {
-        Registration registration = new Registration(name, password);
-        Thread thread = new Thread(new ReaderAuth(socket));
-        thread.start();
-
-        try {
-            objOut.writeObject(registration);
-            objOut.flush();
-
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            IOUtils.closeQuietly(socket);
-
-            throw new ChatUncheckedException("Error sending components", e);
-        }
     }
 
     private void buildAndSendMessage(String msg) {
