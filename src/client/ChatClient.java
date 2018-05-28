@@ -1,5 +1,6 @@
 package client;
 import components.*;
+import messages.TextMessage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -23,6 +24,9 @@ public class ChatClient {
     private Socket socket;
     private ObjectOutputStream objOut;
     private boolean check;
+    enum clientStatus { CONNECTED,
+                        LOGGED_IN
+    }
 
     public ChatClient(SocketAddress serverAddress, Scanner scanner) {
         this.serverAddress = serverAddress;
@@ -70,7 +74,7 @@ public class ChatClient {
         try {
             socket = new Socket();
             socket.connect(serverAddress);
-            objOut = new ObjectOutputStream(socket.getOutputStream());
+//            objOut = new ObjectOutputStream(socket.getOutputStream());
             byte[] header = {(byte) 0xAA, (byte) 0xAA};
             OutputStream out = socket.getOutputStream();
             out.write(header);
@@ -97,7 +101,7 @@ public class ChatClient {
                 ObjectInputStream objIn = new ObjectInputStream(socket.getInputStream());
 
                 while (!Thread.currentThread().isInterrupted()) {
-                    Message message = (Message) objIn.readObject();
+                    TextMessage message = (TextMessage) objIn.readObject();
                     printMessage(message);
                 }
             }
@@ -115,12 +119,12 @@ public class ChatClient {
     }
 
 
-    private void printMessage(Message msg) {
+    private void printMessage(TextMessage msg) {
         System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
     private void buildAndSendMessage(String msg) {
-        Message message = new Message(System.currentTimeMillis(), name, msg);
+        TextMessage message = new TextMessage(System.currentTimeMillis(), name, msg);
 
         try {
             objOut.writeObject(message);

@@ -1,19 +1,17 @@
 package server;
-import client.Registration;
 import components.*;
+import messages.TextMessage;
 
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -25,7 +23,7 @@ public class ChatServer {
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
-    private final BlockingDeque<Message> messageQueue = new LinkedBlockingDeque<>();
+    private final BlockingDeque<TextMessage> messageQueue = new LinkedBlockingDeque<>();
     byte [] header = {(byte) 0xAA, (byte) 0xAA};
 
 
@@ -35,7 +33,7 @@ public class ChatServer {
 
     private void start() throws IOException {
 
-        new Thread(new Writer()).start();
+
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server started on " + serverSocket);
@@ -43,16 +41,30 @@ public class ChatServer {
             while (true) {
 
                 Socket sock = serverSocket.accept();
-                connections.add(new Connection(sock));
+                Connection con = new Connection(sock);
+                connections.add(con);
                 InputStream in = sock.getInputStream();
                 byte[] buf = new byte[2];
-                in.read(buf);
+                int read = in.read(buf);
+                while (read < 2 && read != -1) {
+                    read = in.read(buf, read, buf.length - read);
+                }
+
                 if (Arrays.equals(buf, header)) {
                     System.out.println("Все ОК");
                     new Thread(new Reader(sock)).start();
                 }
+                else {
+                    System.out.println("Wrong header: " + Arrays.toString(buf));
+                }
+
+                //
+
+
+                new Thread(new Writer()).start();
             }
         }
+
     }
 
     private class Reader implements Runnable {
@@ -71,7 +83,7 @@ public class ChatServer {
                 System.out.printf("%s connected\n", socket.getInetAddress().getHostAddress());
 
                 while (!Thread.currentThread().isInterrupted()) {
-                    Message msg = (Message) objIn.readObject();
+                    TextMessage msg = (TextMessage) objIn.readObject();
                     messageQueue.add(msg);
                     printMessage(msg);
                 }
@@ -97,7 +109,7 @@ public class ChatServer {
 
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    Message msg = messageQueue.take();
+                    TextMessage msg = messageQueue.take();
 
                     for (Connection connection : connections) {
                         try {
@@ -129,7 +141,7 @@ public class ChatServer {
         }
     }
 
-    private void printMessage(Message msg) {
+    private void printMessage(TextMessage msg) {
         System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 

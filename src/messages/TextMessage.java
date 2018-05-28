@@ -1,21 +1,21 @@
-package components;
+package messages;
 
 import java.io.Serializable;
 
 
-public class Message implements Serializable {
+public class TextMessage implements Messages, Serializable {
 
     private long timestamp;
     private String sender;
     private String text;
 
-    public Message(long timestamp, String sender, String text) {
+    public TextMessage(long timestamp, String sender, String text) {
         this.timestamp = timestamp;
         this.sender = sender;
         this.text = text;
     }
 
-    public Message() {
+    public TextMessage() {
         this(0, null, null);
     }
 
