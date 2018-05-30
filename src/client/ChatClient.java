@@ -49,24 +49,20 @@ public class ChatClient {
         Thread reader = new Thread(new Reader(socket));
         reader.start();
 
-        System.out.println("Enter message to send: ");
+        System.out.println(clientState);
+        String msg;
+
+
+        while (clientState == ClientState.CONNECTED){
+            System.out.println("Enter LOGIN and PASSWORD");
+            msg = scanner.nextLine();
+            if (msg != null && !msg.isEmpty())
+                buildAndSendMessage(msg);
+        }
 
         while (true) {
-            String msg = scanner.nextLine();
-
-            /*if ("/exit".equals(msg)) {
-                IOUtils.closeQuietly(socket);
-
-                break;
-            }
-            else if ("/nick".equals(msg)) {
-                System.out.println("Enter new name:");
-
-                name = scanner.nextLine();
-
-                continue;
-            }*/
-
+            msg = scanner.nextLine();
+            System.out.println("Enter message to send: ");
             if (msg != null && !msg.isEmpty())
                 buildAndSendMessage(msg);
         }

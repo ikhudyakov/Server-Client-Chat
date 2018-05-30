@@ -97,7 +97,10 @@ public class ChatServer {
                         if("aaa".equals(loginCommand.getLogin())){
                             if("bbb".equals(loginCommand.getPassword())){
                                 Status status = new Status(1);
-                                messageQueue.add(status);
+
+
+
+//                                messageQueue.add(status);
                                 System.out.println(status.getStatusCode());
                             }
                         }
@@ -131,11 +134,17 @@ public class ChatServer {
 
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    TextMessage msg = (TextMessage)messageQueue.take();
+                    Messages msg = messageQueue.take();
+                    Messages msgOut = null;
+                    if(msg instanceof Status){
+                        msgOut = (Status) msg;
+                    } else if(msg instanceof TextMessage){
+                        msgOut = (TextMessage) msg;
+                    }
 
                     for (Connection connection : connections) {
                         try {
-                            connection.objOut.writeObject(msg);
+                            connection.objOut.writeObject(msgOut);
                             connection.objOut.flush();
                         }
                         catch (IOException e) {
