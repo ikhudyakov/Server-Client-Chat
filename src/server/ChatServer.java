@@ -1,5 +1,8 @@
 package server;
 import components.*;
+import messages.LoginCommand;
+import messages.Messages;
+import messages.Status;
 import messages.TextMessage;
 
 
@@ -23,7 +26,7 @@ public class ChatServer {
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
-    private final BlockingDeque<TextMessage> messageQueue = new LinkedBlockingDeque<>();
+    private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     byte [] header = {(byte) 0xAA, (byte) 0xAA};
 
 
@@ -53,6 +56,7 @@ public class ChatServer {
                 if (Arrays.equals(buf, header)) {
                     System.out.println("Все ОК");
                     new Thread(new Reader(sock)).start();
+                    new Thread(new Writer()).start();
                 }
                 else {
                     System.out.println("Wrong header: " + Arrays.toString(buf));
@@ -61,7 +65,7 @@ public class ChatServer {
                 //
 
 
-                new Thread(new Writer()).start();
+//                new Thread(new Writer()).start();
             }
         }
 
@@ -78,14 +82,32 @@ public class ChatServer {
         public void run() {
             ObjectInputStream objIn;
 
+
+
             try {
                 objIn = new ObjectInputStream(socket.getInputStream());
                 System.out.printf("%s connected\n", socket.getInetAddress().getHostAddress());
 
                 while (!Thread.currentThread().isInterrupted()) {
-                    TextMessage msg = (TextMessage) objIn.readObject();
-                    messageQueue.add(msg);
-                    printMessage(msg);
+//                    TextMessage msg = (TextMessage) objIn.readObject();
+
+                    Messages messages = (Messages)objIn.readObject();
+                    if(messages instanceof LoginCommand){
+                        LoginCommand loginCommand = (LoginCommand) messages;
+                        if("aaa".equals(loginCommand.getLogin())){
+                            if("bbb".equals(loginCommand.getPassword())){
+                                Status status = new Status(1);
+                                messageQueue.add(status);
+                                System.out.println(status.getStatusCode());
+                            }
+                        }
+                    } else if(messages instanceof TextMessage){
+                        messageQueue.add(messages);
+                        printMessage((TextMessage)messages);
+                    }
+
+
+
                 }
 
             }
@@ -109,7 +131,7 @@ public class ChatServer {
 
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    TextMessage msg = messageQueue.take();
+                    TextMessage msg = (TextMessage)messageQueue.take();
 
                     for (Connection connection : connections) {
                         try {
