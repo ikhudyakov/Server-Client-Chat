@@ -58,11 +58,13 @@ public class ChatServer {
                 if (Arrays.equals(buf, header)) {
                     System.out.println("success connection");
                     new Thread(new Reader(sock)).start();
-                    new Thread(new Writer()).start();
+
                 }
                 else {
                     System.out.println("Wrong header: " + Arrays.toString(buf));
                 }
+
+                new Thread(new Writer()).start();
 
                 //
 

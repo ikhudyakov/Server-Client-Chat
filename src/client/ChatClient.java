@@ -34,7 +34,7 @@ public class ChatClient {
 
     }
 
-    private void start() throws IOException {
+    private void start() throws IOException, InterruptedException {
 
         openConnection();
 
@@ -46,6 +46,7 @@ public class ChatClient {
 
 
         while (true){
+            Thread.sleep(1000);
             if(clientState == ClientState.LOGGED_IN)
                 break;
             String pass;
@@ -60,8 +61,8 @@ public class ChatClient {
         }
 
         while (true) {
-            msg = scanner.nextLine();
             System.out.println("Enter message to send: ");
+            msg = scanner.nextLine();
             if (msg != null && !msg.isEmpty())
                 buildAndSendMessage(msg);
         }
@@ -165,7 +166,7 @@ public class ChatClient {
         return new InetSocketAddress(split[0], Integer.parseInt(split[1]));
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         String address = null;
 
         if (args != null && args.length > 0)
