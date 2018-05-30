@@ -46,7 +46,7 @@ public class ChatServer {
             while (true) {
 
                 Socket sock = serverSocket.accept();
-                Connection con = new Connection(sock);
+                Connection con = new Connection(sock);      // Создаем новое соединение с подключенным к серверу клиентом
                 connections.add(con);
                 InputStream in = sock.getInputStream();
                 byte[] buf = new byte[2];
