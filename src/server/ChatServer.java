@@ -13,9 +13,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -28,10 +26,14 @@ public class ChatServer {
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     byte [] header = {(byte) 0xAA, (byte) 0xAA};
+    Map<String, String> accMap = new HashMap<>();
 
 
     public ChatServer(int port) {
         this.port = port;
+        accMap.put("test1", "pass1");
+        accMap.put("test2", "pass2");
+        accMap.put("test3", "pass3");
     }
 
     private void start() throws IOException {
@@ -54,7 +56,7 @@ public class ChatServer {
                 }
 
                 if (Arrays.equals(buf, header)) {
-                    System.out.println("Все ОК");
+                    System.out.println("success connection");
                     new Thread(new Reader(sock)).start();
                     new Thread(new Writer()).start();
                 }
@@ -81,6 +83,7 @@ public class ChatServer {
         @Override
         public void run() {
             ObjectInputStream objIn;
+            Status status;
 
 
 
@@ -92,17 +95,26 @@ public class ChatServer {
 //                    TextMessage msg = (TextMessage) objIn.readObject();
 
                     Messages messages = (Messages)objIn.readObject();
-                    if(messages instanceof LoginCommand){
+                    if(messages instanceof LoginCommand){                           // Проверка на принадлежность message к классу LoginCommand
                         LoginCommand loginCommand = (LoginCommand) messages;
-                        if("aaa".equals(loginCommand.getLogin())){
-                            if("bbb".equals(loginCommand.getPassword())){
-                                Status status = new Status(1);
+                        if(accMap.containsKey(loginCommand.getLogin())){            // Содержит ли Мар полученный логин
+                            String password = accMap.get(loginCommand.getLogin());
+                            if(password.equals(loginCommand.getPassword())){             // Сравниваем взятый из Мар пароль с полученным от клиента
+                                status = new Status(1);
 
-
-
-//                                messageQueue.add(status);
                                 System.out.println(status.getStatusCode());
+                                messageQueue.add(status);
+                            } else{
+                                status = new Status(3);
+
+                                System.out.println(status.getStatusCode());
+                                messageQueue.add(status);
                             }
+                        } else {
+                            status = new Status(2);
+
+                            System.out.println(status.getStatusCode());
+                            messageQueue.add(status);
                         }
                     } else if(messages instanceof TextMessage){
                         messageQueue.add(messages);

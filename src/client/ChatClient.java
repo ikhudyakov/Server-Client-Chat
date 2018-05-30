@@ -19,11 +19,9 @@ public class ChatClient {
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
     private SocketAddress serverAddress;
     private String name;
-    private String password;
     private Scanner scanner;
     private Socket socket;
     private ObjectOutputStream objOut;
-    private boolean check;
     enum ClientState { CONNECTED,
                         LOGGED_IN
     }
@@ -32,19 +30,13 @@ public class ChatClient {
     private ChatClient(SocketAddress serverAddress, Scanner scanner) {
         this.serverAddress = serverAddress;
         this.scanner = scanner;
-        clientState = ClientState.CONNECTED;
+
 
     }
 
     private void start() throws IOException {
 
         openConnection();
-
-
-//        System.out.println("Enter your login: ");
-//        name = scanner.nextLine();
-
-
 
         Thread reader = new Thread(new Reader(socket));
         reader.start();
@@ -53,11 +45,18 @@ public class ChatClient {
         String msg;
 
 
-        while (clientState == ClientState.CONNECTED){
-            System.out.println("Enter LOGIN and PASSWORD");
-            msg = scanner.nextLine();
-            if (msg != null && !msg.isEmpty())
-                buildAndSendMessage(msg);
+        while (true){
+            if(clientState == ClientState.LOGGED_IN)
+                break;
+            String pass;
+            System.out.println("Enter LOGIN");
+            name = scanner.nextLine();
+            msg = name;
+            System.out.println("Enter PASSWORD");
+            pass = scanner.nextLine();
+            msg += " " + pass;
+            buildAndSendMessage(msg);
+
         }
 
         while (true) {
@@ -73,7 +72,7 @@ public class ChatClient {
         try {
             socket = new Socket();
             socket.connect(serverAddress);
-
+            clientState = ClientState.CONNECTED;
             byte[] header = {(byte) 0xAA, (byte) 0xAA};
             OutputStream out = socket.getOutputStream();
             out.write(header);
@@ -107,12 +106,15 @@ public class ChatClient {
                             case 1:
                                 System.out.println("Success");
                                 clientState = ClientState.LOGGED_IN;
+                                break;
                             case 2:
                                 System.out.println("incorrect login");
                                 clientState = ClientState.CONNECTED;
+                                break;
                             case 3:
                                 System.out.println("incorrect password");
                                 clientState = ClientState.CONNECTED;
+                                break;
                         }
                     } else if(messages instanceof TextMessage){
                         printMessage((TextMessage)messages);

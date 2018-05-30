@@ -1,6 +1,8 @@
 package messages;
 
-public class Status implements Messages{
+import java.io.Serializable;
+
+public class Status implements Messages, Serializable{
     private int statusCode;
 
     public Status(int statusCode) {

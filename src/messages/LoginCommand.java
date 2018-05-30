@@ -1,6 +1,8 @@
 package messages;
 
-public class LoginCommand implements Commands {
+import java.io.Serializable;
+
+public class LoginCommand implements Commands, Serializable {
     String login;
     String password;
 
