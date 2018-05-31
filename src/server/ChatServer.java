@@ -22,7 +22,7 @@ public class ChatServer {
 
     private int port;
 
-    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("[HH:mm:ss.SSS]");
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     byte [] header = {(byte) 0xAA, (byte) 0xAA};
@@ -31,9 +31,9 @@ public class ChatServer {
 
     public ChatServer(int port) {
         this.port = port;
-        accMap.put("test1", "pass1");
-        accMap.put("test2", "pass2");
-        accMap.put("test3", "pass3");
+        accMap.put("user1", "pass1");
+        accMap.put("user2", "pass2");
+        accMap.put("user3", "pass3");
     }
 
     private void start() throws IOException {
@@ -187,7 +187,7 @@ public class ChatServer {
     }
 
     private void printMessage(TextMessage msg) {
-        System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
+        System.out.printf("%s from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
