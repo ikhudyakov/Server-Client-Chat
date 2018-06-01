@@ -16,8 +16,8 @@ import java.util.Scanner;
 
 public class ChatClient {
 
-    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
-    private SocketAddress serverAddress;
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("[HH:mm:ss]");    // формат времени
+    private SocketAddress serverAddress;    // канал связи
     private String name;
     private Scanner scanner;
     private Socket socket;
@@ -143,7 +143,7 @@ public class ChatClient {
 
 
     private void printMessage(TextMessage msg) {
-        System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
+        System.out.printf("%s from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
     private void buildAndSendMessage(String msg) {
