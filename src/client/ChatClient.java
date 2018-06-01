@@ -78,7 +78,7 @@ public class ChatClient {
             OutputStream out = socket.getOutputStream();
             out.write(header);
             System.out.println("Start socket");
-            objOut = new ObjectOutputStream(socket.getOutputStream());
+            objOut = new ObjectOutputStream(out);
 
 
         }
@@ -124,15 +124,19 @@ public class ChatClient {
 //                    TextMessage message = (TextMessage) objIn.readObject();
                 }
             }
-            catch (IOException e) {
-                throw new ChatUncheckedException("Error reading components", e);
+            catch (Exception e) {
+                e.printStackTrace();
             }
-            catch (ClassNotFoundException e) {
-                throw new ChatUncheckedException("Error de-serializing components", e);
-            }
+//            catch (IOException e) {
+//
+//                throw new ChatUncheckedException("Error reading components", e);
+//            }
+//            catch (ClassNotFoundException e) {
+//                throw new ChatUncheckedException("Error de-serializing components", e);
+//            }
             finally {
                 IOUtils.closeQuietly(socket);
-                System.exit(1);
+//                System.exit(1);
             }
         }
     }

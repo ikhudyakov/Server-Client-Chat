@@ -4,17 +4,18 @@ import messages.LoginCommand;
 import messages.Messages;
 import messages.Status;
 import messages.TextMessage;
+import components.Connection;
 
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -24,12 +25,13 @@ public class ChatServer {
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
+    private Map<String, Connection> userConnection = new ConcurrentHashMap<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
-    byte [] header = {(byte) 0xAA, (byte) 0xAA};
-    Map<String, String> accMap = new HashMap<>();
+    private byte [] header = {(byte) 0xAA, (byte) 0xAA};
+    private Map<String, String> accMap = new HashMap<>();
 
 
-    public ChatServer(int port) {
+    private ChatServer(int port) {
         this.port = port;
         accMap.put("test1", "pass1");
         accMap.put("test2", "pass2");
@@ -46,19 +48,19 @@ public class ChatServer {
             while (true) {
 
                 Socket sock = serverSocket.accept();
-                Connection con = new Connection(sock);      // Создаем новое соединение с подключенным к серверу клиентом
-                connections.add(con);
                 InputStream in = sock.getInputStream();
                 byte[] buf = new byte[2];
                 int read = in.read(buf);
                 while (read < 2 && read != -1) {
-                    read = in.read(buf, read, buf.length - read);
+                    read += in.read(buf, read, buf.length - read);
                 }
 
                 if (Arrays.equals(buf, header)) {
-                    System.out.println("success connection");
-                    new Thread(new Reader(sock)).start();
+                    Connection con = new Connection(sock);      // Создаем новое соединение с подключенным к серверу клиентом
+                    connections.add(con);
 
+                    System.out.println("success connection");
+                    new Thread(new Reader(con)).start();
                 }
                 else {
                     System.out.println("Wrong header: " + Arrays.toString(buf));
@@ -66,20 +68,16 @@ public class ChatServer {
 
                 new Thread(new Writer()).start();
 
-                //
-
-
-//                new Thread(new Writer()).start();
             }
         }
 
     }
 
     private class Reader implements Runnable {
-        private final Socket socket;
+        private final Connection con;
 
-        private Reader(Socket socket) {
-            this.socket = socket;
+        private Reader(Connection con) {
+            this.con = con;
         }
 
         @Override
@@ -90,53 +88,47 @@ public class ChatServer {
 
 
             try {
-                objIn = new ObjectInputStream(socket.getInputStream());
-                System.out.printf("%s connected\n", socket.getInetAddress().getHostAddress());
+                objIn = new ObjectInputStream(con.socket.getInputStream());
+                System.out.printf("%s connected\n", con.socket.getInetAddress().getHostAddress());
 
                 while (!Thread.currentThread().isInterrupted()) {
-//                    TextMessage msg = (TextMessage) objIn.readObject();
 
                     Messages messages = (Messages)objIn.readObject();
-                    if(messages instanceof LoginCommand){                           // Проверка на принадлежность message к классу LoginCommand
+                    if(messages instanceof LoginCommand){
+                        // Проверка на принадлежность message к классу LoginCommand
                         LoginCommand loginCommand = (LoginCommand) messages;
-                        if(accMap.containsKey(loginCommand.getLogin())){            // Содержит ли Мар полученный логин
+                        String login = loginCommand.getLogin();
+                        userConnection.put(login, con);
+                        if(accMap.containsKey(login)){                              // Содержит ли Мар полученный логин
                             String password = accMap.get(loginCommand.getLogin());
-                            if(password.equals(loginCommand.getPassword())){             // Сравниваем взятый из Мар пароль с полученным от клиента
-                                status = new Status(1);
-
-                                System.out.println(status.getStatusCode());
-                                messageQueue.add(status);
+                            if(password.equals(loginCommand.getPassword())){        // Сравниваем взятый из Мар пароль с полученным от клиента
+                                status = new Status(1, login);
                             } else{
-                                status = new Status(3);
-
-                                System.out.println(status.getStatusCode());
-                                messageQueue.add(status);
+                                status = new Status(3, login);
                             }
                         } else {
-                            status = new Status(2);
-
-                            System.out.println(status.getStatusCode());
-                            messageQueue.add(status);
+                            status = new Status(2, login);
                         }
+                        System.out.println(status.getStatusCode());
+                        messageQueue.add(status);
+
                     } else if(messages instanceof TextMessage){
                         messageQueue.add(messages);
                         printMessage((TextMessage)messages);
                     }
-
-
-
                 }
 
             }
             catch (IOException e) {
-                System.err.println("Disconnected " + socket.getInetAddress().getHostAddress());
+                e.printStackTrace();
+                System.err.println("Disconnected " + con.socket.getInetAddress().getHostAddress());
             }
             catch (ClassNotFoundException e) {
                 throw new ChatUncheckedException("Error de-serializing components", e);
             }
             finally {
-                connections.removeIf(connection -> connection.socket == socket);
-                IOUtils.closeQuietly(socket);
+                connections.removeIf(connection -> connection.socket == con.socket);
+                IOUtils.closeQuietly(con.socket);
             }
         }
     }
@@ -149,23 +141,36 @@ public class ChatServer {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Messages msg = messageQueue.take();
-                    Messages msgOut = null;
-                    if(msg instanceof Status){
-                        msgOut = (Status) msg;
-                    } else if(msg instanceof TextMessage){
-                        msgOut = (TextMessage) msg;
-                    }
 
-                    for (Connection connection : connections) {
-                        try {
+                    if(msg instanceof Status){
+                        Status msgOut = (Status) msg;
+
+                        String login = msgOut.getLogin();
+                        Connection connection = userConnection.get(login);
+                        try{
                             connection.objOut.writeObject(msgOut);
                             connection.objOut.flush();
-                        }
-                        catch (IOException e) {
+                        } catch (IOException e) {
+                            e.printStackTrace();
                             System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
 
-                            connections.remove(connection);
+                            userConnection.remove(login);
                             IOUtils.closeQuietly(connection.socket);
+                        }
+
+                    } else if(msg instanceof TextMessage) {
+                        TextMessage msgOut = (TextMessage) msg;
+
+                        for (Connection connection : connections) {
+                            try {
+                                connection.objOut.writeObject(msgOut);
+                                connection.objOut.flush();
+                            } catch (IOException e) {
+                                System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+
+                                connections.remove(connection);
+                                IOUtils.closeQuietly(connection.socket);
+                            }
                         }
                     }
                 }
@@ -176,21 +181,13 @@ public class ChatServer {
         }
     }
 
-    private static class Connection {
-        final Socket socket;
-        final ObjectOutputStream objOut;
 
-        Connection(Socket socket) throws IOException {
-            this.socket = socket;
-            this.objOut = new ObjectOutputStream(socket.getOutputStream());
-        }
-    }
 
     private void printMessage(TextMessage msg) {
         System.out.printf("%s: %s => %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException {
         if (args == null || args.length == 0)
             throw new IllegalArgumentException("Port must be specified");
         int port = Integer.parseInt(args[0]);
