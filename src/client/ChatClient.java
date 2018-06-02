@@ -16,7 +16,7 @@ import java.util.Scanner;
 
 public class ChatClient {
 
-    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("[HH:mm:ss]");    // формат времени
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");    // формат времени
     private SocketAddress serverAddress;    // канал связи
     private String name;
     private Scanner scanner;
@@ -46,7 +46,7 @@ public class ChatClient {
 
 
         while (true){
-            Thread.sleep(1000);
+            Thread.sleep(100);
             if(clientState == ClientState.LOGGED_IN)
                 break;
             String pass;
@@ -57,7 +57,6 @@ public class ChatClient {
             pass = scanner.nextLine();
             msg += " " + pass;
             buildAndSendMessage(msg);
-
         }
 
         while (true) {
@@ -79,9 +78,8 @@ public class ChatClient {
             out.write(header);
             System.out.println("Start socket");
             objOut = new ObjectOutputStream(out);
-
-
         }
+
         catch (IOException e) {
             IOUtils.closeQuietly(socket);
             throw new ChatUncheckedException("Error connecting to server", e);
@@ -120,30 +118,25 @@ public class ChatClient {
                     } else if(messages instanceof TextMessage){
                         printMessage((TextMessage)messages);
                     }
-
-//                    TextMessage message = (TextMessage) objIn.readObject();
                 }
             }
-            catch (Exception e) {
-                e.printStackTrace();
+            catch (IOException e) {
+
+                throw new ChatUncheckedException("Error reading components", e);
             }
-//            catch (IOException e) {
-//
-//                throw new ChatUncheckedException("Error reading components", e);
-//            }
-//            catch (ClassNotFoundException e) {
-//                throw new ChatUncheckedException("Error de-serializing components", e);
-//            }
+            catch (ClassNotFoundException e) {
+                throw new ChatUncheckedException("Error de-serializing components", e);
+            }
             finally {
                 IOUtils.closeQuietly(socket);
-//                System.exit(1);
+                System.exit(1);
             }
         }
     }
 
 
     private void printMessage(TextMessage msg) {
-        System.out.printf("%s from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
+        System.out.printf("[%s] from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
     private void buildAndSendMessage(String msg) {
