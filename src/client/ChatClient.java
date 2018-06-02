@@ -114,6 +114,10 @@ public class ChatClient {
                                 System.out.println("incorrect password");
                                 clientState = ClientState.CONNECTED;
                                 break;
+                            case 4:
+                                System.out.println("user already logged on");
+                                clientState = ClientState.CONNECTED;
+                                break;
                         }
                     } else if(messages instanceof TextMessage){
                         printMessage((TextMessage)messages);
@@ -141,6 +145,10 @@ public class ChatClient {
 
     private void buildAndSendMessage(String msg) {
         Messages messages = null;
+
+        if (msg.startsWith("//")){
+
+        }
 
         if (clientState == ClientState.LOGGED_IN) {
             messages = new TextMessage(System.currentTimeMillis(), name, msg);

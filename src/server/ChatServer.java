@@ -25,6 +25,7 @@ public class ChatServer {
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");
     private String time = FORMAT.format(System.currentTimeMillis());
     private Map<String, Connection> userConnection = new ConcurrentHashMap<>();
+    private List<String> onlineUsers = new ArrayList<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     private byte [] header = {(byte) 0xAA, (byte) 0xAA};
     private Map<String, String> accMap = new HashMap<>();
@@ -91,13 +92,18 @@ public class ChatServer {
                         if(accMap.containsKey(login)){                              // Содержит ли Мар полученный логин
                             String password = accMap.get(loginCommand.getLogin());
                             if(password.equals(loginCommand.getPassword())){        // Сравниваем взятый из Мар пароль с полученным от клиента
-                                status = new Status(1, login);
-                                for (Map.Entry entry: userConnection.entrySet()) {
-                                    if (userConnection.get(entry.getKey()).equals(con)){
-                                        userConnection.remove(entry.getKey());
+                                if(!onlineUsers.contains(login)) {
+                                    onlineUsers.add(login);
+                                    status = new Status(1, login);
+                                    for (Map.Entry entry : userConnection.entrySet()) {
+                                        if (userConnection.get(entry.getKey()).equals(con)) {
+                                            userConnection.remove(entry.getKey());
+                                        }
                                     }
+                                    userConnection.put(login, con);
+                                } else {
+                                    status = new Status(4, login);
                                 }
-                                userConnection.put(login, con);
                             } else{
                                 status = new Status(3, login);
                             }
@@ -113,6 +119,9 @@ public class ChatServer {
                                 break;
                             case 3:
                                 System.out.println(time + " incorrect password " + con.socket.getInetAddress().getHostAddress());
+                                break;
+                            case 4:
+                                System.out.println(time + " user already logged on " + con.socket.getInetAddress().getHostAddress());
                                 break;
                         }
 
@@ -134,9 +143,10 @@ public class ChatServer {
             }
             finally {
 
-                if (login != null && userConnection.containsKey(login)){
+                if (login != null && userConnection.containsKey(login))
                     userConnection.remove(login);
-                }
+                if(onlineUsers.contains(login))
+                    onlineUsers.remove(login);
                 IOUtils.closeQuietly(con.socket);
             }
         }
