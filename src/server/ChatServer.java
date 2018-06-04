@@ -129,11 +129,7 @@ public class ChatServer {
 
                     } else if(messages instanceof TextMessage){
                         if (((TextMessage) messages).getText().startsWith("//")){
-                            if(((TextMessage) messages).getText().toLowerCase().contains("newroom")){
-                                System.out.println("Enter room's name");
-
-
-                            }
+                            newChatRoomCommands((TextMessage)messages);
                         }
                         messageQueue.add(messages);
                         printMessage((TextMessage)messages);
@@ -206,6 +202,16 @@ public class ChatServer {
         }
     }
 
+    private void newChatRoomCommands(TextMessage messages){
+        if(((TextMessage) messages).getText().toLowerCase().contains("newroom")){
+            System.out.println("Enter room's name");
+            // расклеить по пробелам login-ы , list с коллекциями
+            // по логинам нужно получить нужные сокеты и отправить указанным пользователям сообщение
+            // в блокирующую очередь будет передаваться объект с коллекцией сокетов и текст
+            //
+
+        }
+    }
 
 
     private void printMessage(TextMessage msg) {
