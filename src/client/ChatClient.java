@@ -58,11 +58,13 @@ public class ChatClient {
             msg += " " + pass;
             buildAndSendMessage(msg);
         }
+        System.out.println("Enter message to send: ");
 
         while (true) {
-            System.out.println("Enter message to send: ");
             msg = scanner.nextLine();
-            if (msg != null && !msg.isEmpty())
+            if (msg.equals(("//"))){
+                System.out.printf("All Commands:\n//newroom - Crate new chatroom\n//exit - Exit");
+            } else if (msg != null && !msg.isEmpty())
                 buildAndSendMessage(msg);
         }
     }
