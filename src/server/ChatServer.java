@@ -132,6 +132,7 @@ public class ChatServer {
                             if(((TextMessage) messages).getText().toLowerCase().contains("newroom")){
                                 System.out.println("Enter room's name");
 
+
                             }
                         }
                         messageQueue.add(messages);
