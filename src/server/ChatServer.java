@@ -128,11 +128,16 @@ public class ChatServer {
                         messageQueue.add(status);
 
                     } else if(messages instanceof TextMessage){
+                        if (((TextMessage) messages).getText().startsWith("//")){
+                            if(((TextMessage) messages).getText().toLowerCase().contains("newroom")){
+                                System.out.println("Enter room's name");
+
+                            }
+                        }
                         messageQueue.add(messages);
                         printMessage((TextMessage)messages);
                     }
                 }
-
             }
             catch (IOException e) {
                 //e.printStackTrace();
@@ -141,12 +146,12 @@ public class ChatServer {
             catch (ClassNotFoundException e) {
                 throw new ChatUncheckedException("Error de-serializing components", e);
             }
-            finally {
+            finally {       // выполнится в любом случае
 
                 if (login != null && userConnection.containsKey(login))
-                    userConnection.remove(login);
+                    userConnection.remove(login);   // удаляет пользователя из Map
                 if(onlineUsers.contains(login))
-                    onlineUsers.remove(login);
+                    onlineUsers.remove(login);      //
                 IOUtils.closeQuietly(con.socket);
             }
         }

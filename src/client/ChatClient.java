@@ -46,7 +46,7 @@ public class ChatClient {
 
 
         while (true){
-            Thread.sleep(100);
+            Thread.sleep(1000);
             if(clientState == ClientState.LOGGED_IN)
                 break;
             String pass;
