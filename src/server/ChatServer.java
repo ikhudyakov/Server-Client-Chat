@@ -25,7 +25,8 @@ public class ChatServer {
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");
     private String time = FORMAT.format(System.currentTimeMillis());
     private Map<String, Connection> userConnection = new ConcurrentHashMap<>();
-    private List<String> onlineUsers = new ArrayList<>();
+    private Map<String, Connection> connectionMap = new ConcurrentHashMap<>();
+    //private List<Socket> onlineUsers = new ArrayList<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     private byte [] header = {(byte) 0xAA, (byte) 0xAA};
     private Map<String, String> accMap = new HashMap<>();
@@ -80,7 +81,7 @@ public class ChatServer {
             String login = null;
             try {
                 objIn = new ObjectInputStream(con.socket.getInputStream());
-                System.out.printf(time + " %s connected\n", con.socket.getInetAddress().getHostAddress());
+                System.out.printf("[%s] connected %s\n",FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
 
                 while (!Thread.currentThread().isInterrupted()) {
 
@@ -88,19 +89,19 @@ public class ChatServer {
                     if(messages instanceof LoginCommand){                           // Проверка на принадлежность message к классу LoginCommand
                         LoginCommand loginCommand = (LoginCommand) messages;
                         login = loginCommand.getLogin();
-                        userConnection.put(login, con);
+                        connectionMap.put(login, con);
+
                         if(accMap.containsKey(login)){                              // Содержит ли Мар полученный логин
-                            String password = accMap.get(loginCommand.getLogin());
+                            String password = accMap.get(login);
                             if(password.equals(loginCommand.getPassword())){        // Сравниваем взятый из Мар пароль с полученным от клиента
-                                if(!onlineUsers.contains(login)) {
-                                    onlineUsers.add(login);
+                                if(!userConnection.containsKey(login)) {
                                     status = new Status(1, login);
-                                    for (Map.Entry entry : userConnection.entrySet()) {
-                                        if (userConnection.get(entry.getKey()).equals(con)) {
-                                            userConnection.remove(entry.getKey());
-                                        }
-                                    }
                                     userConnection.put(login, con);
+//                                    for (Map.Entry entry : userConnection.entrySet()) {
+//                                        if (userConnection.get(entry.getKey()).equals(con)) {
+//                                            userConnection.remove(entry.getKey());
+//                                        }
+//                                    }
                                 } else {
                                     status = new Status(4, login);
                                 }
@@ -112,19 +113,18 @@ public class ChatServer {
                         }
                         switch (status.getStatusCode()){
                             case 1:
-                                System.out.println(time + " Success " + con.socket.getInetAddress().getHostAddress());
+                                System.out.printf("[%s] Success %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
                             case 2:
-                                System.out.println(time + " incorrect login " + con.socket.getInetAddress().getHostAddress());
+                                System.out.printf("[%s] incorrect login %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
                             case 3:
-                                System.out.println(time + " incorrect password " + con.socket.getInetAddress().getHostAddress());
+                                System.out.printf("[%s] incorrect password %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
                             case 4:
-                                System.out.println(time + " user already logged on " + con.socket.getInetAddress().getHostAddress());
+                                System.out.printf("[%s] user already logged on %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
                         }
-
                         messageQueue.add(status);
 
                     } else if(messages instanceof TextMessage){
@@ -138,7 +138,7 @@ public class ChatServer {
             }
             catch (IOException e) {
                 //e.printStackTrace();
-                System.err.println(time + " Disconnected " + con.socket.getInetAddress().getHostAddress());
+                System.err.printf("[%s] Disconnected %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
             }
             catch (ClassNotFoundException e) {
                 throw new ChatUncheckedException("Error de-serializing components", e);
@@ -147,8 +147,6 @@ public class ChatServer {
 
                 if (login != null && userConnection.containsKey(login))
                     userConnection.remove(login);   // удаляет пользователя из Map
-                if(onlineUsers.contains(login))
-                    onlineUsers.remove(login);      //
                 IOUtils.closeQuietly(con.socket);
             }
         }
@@ -167,7 +165,7 @@ public class ChatServer {
                         Status msgOut = (Status) msg;
 
                         String login = msgOut.getLogin();
-                        Connection connection = userConnection.get(login);
+                        Connection connection = connectionMap.get(login);
                         try{
                             connection.objOut.writeObject(msgOut);
                             connection.objOut.flush();
@@ -175,7 +173,7 @@ public class ChatServer {
                             e.printStackTrace();
                             System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
 
-                            userConnection.remove(login);
+                            connectionMap.remove(login);
                             IOUtils.closeQuietly(connection.socket);
                         }
 
@@ -215,7 +213,7 @@ public class ChatServer {
 
 
     private void printMessage(TextMessage msg) {
-        System.out.printf("%s from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
+        System.out.printf("[%s] from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
     public static void main(String[] args) throws IOException {
