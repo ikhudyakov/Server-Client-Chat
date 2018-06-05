@@ -26,9 +26,11 @@ public class ChatServer {
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     private byte [] header = {(byte) 0xAA, (byte) 0xAA};
     private Map<String, String> accMap = new HashMap<>();
+    private ChatRoom chat;
 
 
     private ChatServer(int port) {
+        chat = new ChatRoom();
         this.port = port;
         accMap.put("user1", "pass1");
         accMap.put("user2", "pass2");
@@ -101,6 +103,11 @@ public class ChatServer {
                                 }                                    // поэтому он удалял новые данные из мапы и сообзения опять не рассылались
                                 status = new Status(1, login);
                                     userConnection.put(login, con);
+                                chat.setUsers(login);
+                                if(chatRoomList.size() > 0) {
+                                    chatRoomList.remove(0);
+                                }
+                                chatRoomList.add(0, chat);
                             } else{
                                 status = new Status(3, login);
                             }
@@ -196,7 +203,7 @@ public class ChatServer {
                     } else if(msg instanceof TextMessage) {
                         TextMessage msgOut = (TextMessage) msg;
 
-                        if (msgOut.getId()!= 0){
+//                        if (msgOut.getId()!= 0){
                             for(ChatRoom list : chatRoomList){
                                 if(msgOut.getId() == list.getId()) {
                                     List users = list.getUsers();
@@ -216,22 +223,22 @@ public class ChatServer {
                                     }
                                 }
                             }
-                        } else {
-                            for (Map.Entry entry : userConnection.entrySet()) {
-                                Connection connection = (Connection) entry.getValue();
-                                try {
-
-                                    //TODO save history for ALL
-
-                                    connection.objOut.writeObject(msgOut);
-                                    connection.objOut.flush();
-                                } catch (IOException e) {
-                                    System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
-                                    userConnection.remove(entry);
-                                    IOUtils.closeQuietly(connection.socket);
-                                }
-                            }
-                        }
+//                        } else {
+//                            for (Map.Entry entry : userConnection.entrySet()) {
+//                                Connection connection = (Connection) entry.getValue();
+//                                try {
+//
+//                                    //TODO save history for ALL
+//
+//                                    connection.objOut.writeObject(msgOut);
+//                                    connection.objOut.flush();
+//                                } catch (IOException e) {
+//                                    System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+//                                    userConnection.remove(entry);
+//                                    IOUtils.closeQuietly(connection.socket);
+//                                }
+//                            }
+//                        }
                     }
                 }
             }

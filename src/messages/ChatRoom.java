@@ -15,6 +15,14 @@ public class ChatRoom implements Commands, Serializable{
         this.id = incId;
         this.users = users;
     }
+    public ChatRoom() {
+        this.id = 0;
+        users = new ArrayList<>();
+    }
+
+    public void setUsers(String login) {
+        this.users.add(login);
+    }
 
     public int getId() {
         return id;
