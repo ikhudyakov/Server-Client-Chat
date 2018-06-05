@@ -8,7 +8,7 @@ public class ChatRoom implements Commands, Serializable{
 
     private static int incId = 0;
     private int id;
-    private List<String> users = new ArrayList<>();
+    private List<String> users;
 
     public ChatRoom(List<String> users) {
         incId++;

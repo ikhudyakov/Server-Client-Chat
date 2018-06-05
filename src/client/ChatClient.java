@@ -132,10 +132,10 @@ public class ChatClient {
                                 System.out.println("incorrect password");
                                 clientState = ClientState.CONNECTED;
                                 break;
-                            case 4:
-                                System.out.println("user already logged on");
-                                clientState = ClientState.CONNECTED;
-                                break;
+//                            case 4:
+//                                System.out.println("user already logged on");
+//                                clientState = ClientState.CONNECTED;
+//                                break;
                             case 5:
                                 System.out.printf("created ChatRoom with %s ID: %d\n", Arrays.toString(status.getUsers().toArray()), status.getIdChatRoom());
                                 break;

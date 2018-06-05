@@ -39,6 +39,7 @@ public class ChatServer {
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server started on " + serverSocket);
+            new Thread(new Writer()).start();
 
             while (true) {
 
@@ -58,7 +59,6 @@ public class ChatServer {
                 else {
                     System.out.println("Wrong header: " + Arrays.toString(buf));
                 }
-                new Thread(new Writer()).start();
             }
         }
     }
@@ -80,7 +80,6 @@ public class ChatServer {
                 System.out.printf("[%s] connected %s\n",FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
 
                 while (!Thread.currentThread().isInterrupted()) {
-
 
                     Messages messages = (Messages)objIn.readObject();
                     if(messages instanceof LoginCommand){                           // Проверка на принадлежность message к классу LoginCommand
@@ -108,7 +107,7 @@ public class ChatServer {
                         } else {
                             status = new Status(2, login);
                         }
-                        switch (status.getStatusCode()){
+                        switch (status.getStatusCode()) {
                             case 1:
                                 System.out.printf("[%s] Success %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
@@ -117,9 +116,6 @@ public class ChatServer {
                                 break;
                             case 3:
                                 System.out.printf("[%s] incorrect password %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
-                                break;
-                            case 4:
-                                System.out.printf("[%s] user already logged on %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
                         }
                         messageQueue.add(status);
@@ -207,6 +203,9 @@ public class ChatServer {
                                     for (Object login : users){
                                         Connection connection = userConnection.get(login);
                                         try {
+
+                                            //TODO save history for ROOMS
+
                                             connection.objOut.writeObject(msgOut);
                                             connection.objOut.flush();
                                         } catch (IOException e) {
@@ -218,10 +217,12 @@ public class ChatServer {
                                 }
                             }
                         } else {
-
                             for (Map.Entry entry : userConnection.entrySet()) {
                                 Connection connection = (Connection) entry.getValue();
                                 try {
+
+                                    //TODO save history for ALL
+
                                     connection.objOut.writeObject(msgOut);
                                     connection.objOut.flush();
                                 } catch (IOException e) {
@@ -239,18 +240,6 @@ public class ChatServer {
             }
         }
     }
-
-    private void newChatRoomCommands(TextMessage messages){
-        if(((TextMessage) messages).getText().toLowerCase().contains("newroom")){
-            System.out.println("Enter room's name");
-            // расклеить по пробелам login-ы , list с коллекциями
-            // по логинам нужно получить нужные сокеты и отправить указанным пользователям сообщение
-            // в блокирующую очередь будет передаваться объект с коллекцией сокетов и текст
-            //
-
-        }
-    }
-
 
     private void printMessage(TextMessage msg) {
         System.out.printf("[%s] from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
