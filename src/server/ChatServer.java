@@ -205,6 +205,7 @@ public class ChatServer {
                                         try {
 
                                             //TODO save history for ROOMS
+                                            History.saveMessageInFile(msgOut.getId(), msg);
 
                                             connection.objOut.writeObject(msgOut);
                                             connection.objOut.flush();
