@@ -103,11 +103,13 @@ public class ChatServer {
                                 }                                    // поэтому он удалял новые данные из мапы и сообзения опять не рассылались
                                 status = new Status(1, login);
                                     userConnection.put(login, con);
-                                chat.setUsers(login);
-                                if(chatRoomList.size() > 0) {
-                                    chatRoomList.remove(0);
-                                }
-                                chatRoomList.add(0, chat);
+                                    if(!chat.getUsers().contains(login)) {
+                                        chat.setUsers(login);
+                                    }
+                                    if(chatRoomList.size() > 0) {
+                                        chatRoomList.remove(0);
+                                    }
+                                    chatRoomList.add(0, chat);
                             } else{
                                 status = new Status(3, login);
                             }
@@ -150,6 +152,7 @@ public class ChatServer {
             finally {       // выполнится в любом случае
 
                 if (login != null && userConnection.containsKey(login))
+//                    chat.getUsers().remove(login);
                     userConnection.remove(login);   // удаляет пользователя из Map
                 IOUtils.closeQuietly(con.socket);
             }
@@ -203,7 +206,6 @@ public class ChatServer {
                     } else if (msg instanceof TextMessage) {
                         TextMessage msgOut = (TextMessage) msg;
 
-//                        if (msgOut.getId()!= 0){
                         for (ChatRoom list : chatRoomList) {
                             if (msgOut.getId() == list.getId()) {
                                 List users = list.getUsers();

@@ -22,6 +22,8 @@ public class ChatClient {
     private Socket socket;
     private ObjectOutputStream objOut;
     private int idChatRoom = 0;
+    private List<Integer> allId;
+
     enum ClientState { CONNECTED,
                         LOGGED_IN
     }
@@ -30,6 +32,8 @@ public class ChatClient {
     private ChatClient(SocketAddress serverAddress, Scanner scanner) {
         this.serverAddress = serverAddress;
         this.scanner = scanner;
+        allId = new ArrayList<>();
+        allId.add(idChatRoom);
 
     }
 
@@ -55,14 +59,17 @@ public class ChatClient {
             System.out.println("Enter PASSWORD");
             pass = scanner.nextLine();
             msg += " " + pass;
-            buildAndSendMessage(msg);
+            if (msg != null && !msg.isEmpty() && !msg.equals(" ")) {
+                buildAndSendMessage(msg);
+            }  else System.out.println("null");
         }
         System.out.println("Enter message to send: ");
 
         while (true) {
             msg = scanner.nextLine();
             if (msg.equals(("//"))){
-                System.out.printf("All Commands:\n//newroom - Crate new chatroom\n//exit - Exit\n//switchchatroom (all users ID: 0)");
+                System.out.printf("All Commands:\n//newroom - Crate new chatroom\n//exit - Exit\n//switchroom - " +
+                        "Switch chat room(all users ID: 0)\n//allroom - Show all chat room\n");
             } else if(msg.equals("//newroom")){
                 System.out.printf("enter the users you want to add to chatroom\n" +
                         "to stop, enter \"//s\"\n");
@@ -75,10 +82,16 @@ public class ChatClient {
                 }
                 System.out.println(Arrays.toString(users.toArray()));
                 buildAndSendMessage(users);
-            } else if (msg.equals(("//switchchatroom"))){
+            } else if (msg.equals(("//switchroom"))){
                 System.out.println("enter id chatroom");
                 msg = scanner.nextLine();
-                idChatRoom = Integer.parseInt(msg);
+                if(allId.contains(Integer.parseInt(msg))){
+                    idChatRoom = Integer.parseInt(msg);
+                } else {
+                    System.out.println("Error room ID");
+                }
+            } else if(msg.equals(("//allroom"))){
+                System.out.println(Arrays.toString(allId.toArray()));
             } else if (msg != null && !msg.isEmpty())
                 buildAndSendMessage(msg);
         }
@@ -118,6 +131,9 @@ public class ChatClient {
                     Messages messages = (Messages)objIn.readObject();
                     if(messages instanceof Status){
                         Status status = (Status) messages;
+                        if (!allId.contains(status.getIdChatRoom())){
+                            allId.add(status.getIdChatRoom());
+                        }
                         switch (status.getStatusCode()){
                             case 1:
                                 System.out.println("Success");
