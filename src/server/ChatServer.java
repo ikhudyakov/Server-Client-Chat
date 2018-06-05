@@ -23,10 +23,8 @@ public class ChatServer {
     private int port;
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");
-    private String time = FORMAT.format(System.currentTimeMillis());
     private Map<String, Connection> userConnection = new ConcurrentHashMap<>();
     private Map<String, Connection> connectionMap = new ConcurrentHashMap<>();
-    //private List<Socket> onlineUsers = new ArrayList<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     private byte [] header = {(byte) 0xAA, (byte) 0xAA};
     private Map<String, String> accMap = new HashMap<>();
@@ -85,6 +83,7 @@ public class ChatServer {
 
                 while (!Thread.currentThread().isInterrupted()) {
 
+
                     Messages messages = (Messages)objIn.readObject();
                     if(messages instanceof LoginCommand){                           // Проверка на принадлежность message к классу LoginCommand
                         LoginCommand loginCommand = (LoginCommand) messages;
@@ -94,17 +93,12 @@ public class ChatServer {
                         if(accMap.containsKey(login)){                              // Содержит ли Мар полученный логин
                             String password = accMap.get(login);
                             if(password.equals(loginCommand.getPassword())){        // Сравниваем взятый из Мар пароль с полученным от клиента
-                                if(!userConnection.containsKey(login)) {
+                                if(userConnection.containsKey(login)) {
+                                    System.out.printf("[%s] user with login \"%s\" was authorized\n", FORMAT.format(System.currentTimeMillis()), login);
+                                    userConnection.get(login).socket.close();
+                                }
                                     status = new Status(1, login);
                                     userConnection.put(login, con);
-//                                    for (Map.Entry entry : userConnection.entrySet()) {
-//                                        if (userConnection.get(entry.getKey()).equals(con)) {
-//                                            userConnection.remove(entry.getKey());
-//                                        }
-//                                    }
-                                } else {
-                                    status = new Status(4, login);
-                                }
                             } else{
                                 status = new Status(3, login);
                             }
