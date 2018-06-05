@@ -1,9 +1,6 @@
 package server;
 import components.*;
-import messages.LoginCommand;
-import messages.Messages;
-import messages.Status;
-import messages.TextMessage;
+import messages.*;
 import components.Connection;
 
 
@@ -25,6 +22,7 @@ public class ChatServer {
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");
     private Map<String, Connection> userConnection = new ConcurrentHashMap<>();
     private Map<String, Connection> connectionMap = new ConcurrentHashMap<>();
+    private List<ChatRoom> chatRoomList = new ArrayList<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     private byte [] header = {(byte) 0xAA, (byte) 0xAA};
     private Map<String, String> accMap = new HashMap<>();
@@ -126,10 +124,14 @@ public class ChatServer {
                         }
                         messageQueue.add(status);
 
+                    } else if(messages instanceof ChatRoom){
+
+                        ChatRoom chatRoom = (ChatRoom) messages;
+                        chatRoomList.add(chatRoom);
+                        messageQueue.add(chatRoom);
+                        System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());
+
                     } else if(messages instanceof TextMessage){
-                        if (((TextMessage) messages).getText().startsWith("//")){
-                            newChatRoomCommands((TextMessage)messages);
-                        }
                         messageQueue.add(messages);
                         printMessage((TextMessage)messages);
                     }
@@ -160,6 +162,25 @@ public class ChatServer {
                 while (!Thread.currentThread().isInterrupted()) {
                     Messages msg = messageQueue.take();
 
+                    if(msg instanceof ChatRoom){
+                        ChatRoom chatRoom = (ChatRoom) msg;
+
+                        Status msgOut = new Status(5, chatRoom.getUsers(), chatRoom.getId());
+                        for(String user : chatRoom.getUsers()){
+                            Connection connection = connectionMap.get(user);
+                            try{
+                                connection.objOut.writeObject(msgOut);
+                                connection.objOut.flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+
+                                connectionMap.remove(user);
+                                IOUtils.closeQuietly(connection.socket);
+                            }
+                        }
+                    }
+
                     if(msg instanceof Status){
                         Status msgOut = (Status) msg;
 
@@ -179,15 +200,35 @@ public class ChatServer {
                     } else if(msg instanceof TextMessage) {
                         TextMessage msgOut = (TextMessage) msg;
 
-                        for (Map.Entry entry: userConnection.entrySet()){
-                            Connection connection = (Connection)entry.getValue();
-                            try {
-                                connection.objOut.writeObject(msgOut);
-                                connection.objOut.flush();
-                            } catch (IOException e) {
-                                System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
-                                userConnection.remove(entry);
-                                IOUtils.closeQuietly(connection.socket);
+                        if (msgOut.getId()!= 0){
+                            for(ChatRoom list : chatRoomList){
+                                if(msgOut.getId() == list.getId()) {
+                                    List users = list.getUsers();
+                                    for (Object login : users){
+                                        Connection connection = userConnection.get(login);
+                                        try {
+                                            connection.objOut.writeObject(msgOut);
+                                            connection.objOut.flush();
+                                        } catch (IOException e) {
+                                            System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+                                            userConnection.remove(login);
+                                            IOUtils.closeQuietly(connection.socket);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+
+                            for (Map.Entry entry : userConnection.entrySet()) {
+                                Connection connection = (Connection) entry.getValue();
+                                try {
+                                    connection.objOut.writeObject(msgOut);
+                                    connection.objOut.flush();
+                                } catch (IOException e) {
+                                    System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+                                    userConnection.remove(entry);
+                                    IOUtils.closeQuietly(connection.socket);
+                                }
                             }
                         }
                     }

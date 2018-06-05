@@ -10,8 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class ChatClient {
@@ -22,6 +21,7 @@ public class ChatClient {
     private Scanner scanner;
     private Socket socket;
     private ObjectOutputStream objOut;
+    private int idChatRoom = 0;
     enum ClientState { CONNECTED,
                         LOGGED_IN
     }
@@ -63,7 +63,23 @@ public class ChatClient {
         while (true) {
             msg = scanner.nextLine();
             if (msg.equals(("//"))){
-                System.out.printf("All Commands:\n//newroom - Crate new chatroom\n//exit - Exit");
+                System.out.printf("All Commands:\n//newroom - Crate new chatroom\n//exit - Exit\n//switchchatroom");
+            } else if(msg.equals("//newroom")){
+                System.out.printf("enter the users you want to add to chatroom\n" +
+                        "to stop, enter \"//s\"\n");
+                List<String> users = new ArrayList<>();
+                while (true){
+                    msg = scanner.nextLine();
+                    if (msg.equals("//s"))
+                        break;
+                    users.add(msg);
+                }
+                System.out.println(Arrays.toString(users.toArray()));
+                buildAndSendMessage(users);
+            } else if (msg.equals(("//switchchatroom"))){
+                System.out.println("enter id chatroom");
+                msg = scanner.nextLine();
+                idChatRoom = Integer.parseInt(msg);
             } else if (msg != null && !msg.isEmpty())
                 buildAndSendMessage(msg);
         }
@@ -120,6 +136,9 @@ public class ChatClient {
                                 System.out.println("user already logged on");
                                 clientState = ClientState.CONNECTED;
                                 break;
+                            case 5:
+                                System.out.printf("created ChatRoom with %s ID: %d\n", Arrays.toString(status.getUsers().toArray()), status.getIdChatRoom());
+                                break;
                         }
                     } else if(messages instanceof TextMessage){
                         printMessage((TextMessage)messages);
@@ -145,15 +164,24 @@ public class ChatClient {
         System.out.printf("[%s] from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
     }
 
+    private void buildAndSendMessage (List users){
+        Messages messages = null;
+        messages = new ChatRoom(users);
+        try {
+            objOut.writeObject(messages);
+            objOut.flush();
+        } catch (IOException e) {
+            IOUtils.closeQuietly(socket);
+
+            throw new ChatUncheckedException("Error sending components", e);
+        }
+    }
+
     private void buildAndSendMessage(String msg) {
         Messages messages = null;
 
-        if (msg.startsWith("//")){
-
-        }
-
         if (clientState == ClientState.LOGGED_IN) {
-            messages = new TextMessage(System.currentTimeMillis(), name, msg);
+            messages = new TextMessage(idChatRoom, System.currentTimeMillis(), name, msg);
         }
         else if (clientState == ClientState.CONNECTED){
             messages = new LoginCommand(msg);

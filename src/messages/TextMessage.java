@@ -8,15 +8,17 @@ public class TextMessage implements Messages, Serializable {
     private long timestamp;
     private String sender;
     private String text;
+    private int id;
 
-    public TextMessage(long timestamp, String sender, String text) {
+    public TextMessage(int id, long timestamp, String sender, String text) {
+        this.id = id;
         this.timestamp = timestamp;
         this.sender = sender;
         this.text = text;
     }
 
     public TextMessage() {
-        this(0, null, null);
+        this(0, 0, null, null);
     }
 
     public long getTimestamp() {
@@ -33,6 +35,10 @@ public class TextMessage implements Messages, Serializable {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getSender() {
