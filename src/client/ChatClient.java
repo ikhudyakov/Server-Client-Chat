@@ -31,7 +31,6 @@ public class ChatClient {
         this.serverAddress = serverAddress;
         this.scanner = scanner;
 
-
     }
 
     private void start() throws IOException, InterruptedException {
@@ -153,8 +152,9 @@ public class ChatClient {
                 throw new ChatUncheckedException("Error de-serializing components", e);
             }
             finally {
-                IOUtils.closeQuietly(socket);
-                System.exit(1);
+//                IOUtils.closeQuietly(socket);
+//                System.exit(1);
+//                System.out.println("Socket closed");
             }
         }
     }
