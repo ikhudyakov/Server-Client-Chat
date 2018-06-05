@@ -97,7 +97,12 @@ public class ChatServer {
                                     System.out.printf("[%s] user with login \"%s\" was authorized\n", FORMAT.format(System.currentTimeMillis()), login);
                                     userConnection.get(login).socket.close();
                                 }
-                                    status = new Status(1, login);
+                                try {
+                                    Thread.sleep(500);          // если усыпить поток, тогда вроде работает
+                                } catch (InterruptedException e) {   // а без этого, блок finally видимо выполнялся после
+                                    e.printStackTrace();             // того, как мы кладем новый логин и сокет userConnection.put(login, con);
+                                }                                    // поэтому он удалял новые данные из мапы и сообзения опять не рассылались
+                                status = new Status(1, login);
                                     userConnection.put(login, con);
                             } else{
                                 status = new Status(3, login);
