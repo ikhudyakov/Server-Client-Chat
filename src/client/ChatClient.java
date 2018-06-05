@@ -62,7 +62,7 @@ public class ChatClient {
         while (true) {
             msg = scanner.nextLine();
             if (msg.equals(("//"))){
-                System.out.printf("All Commands:\n//newroom - Crate new chatroom\n//exit - Exit\n//switchchatroom");
+                System.out.printf("All Commands:\n//newroom - Crate new chatroom\n//exit - Exit\n//switchchatroom (all users ID: 0)");
             } else if(msg.equals("//newroom")){
                 System.out.printf("enter the users you want to add to chatroom\n" +
                         "to stop, enter \"//s\"\n");
@@ -131,15 +131,12 @@ public class ChatClient {
                                 System.out.println("incorrect password");
                                 clientState = ClientState.CONNECTED;
                                 break;
-//                            case 4:
-//                                System.out.println("user already logged on");
-//                                clientState = ClientState.CONNECTED;
-//                                break;
                             case 5:
                                 System.out.printf("created ChatRoom with %s ID: %d\n", Arrays.toString(status.getUsers().toArray()), status.getIdChatRoom());
                                 break;
                         }
                     } else if(messages instanceof TextMessage){
+                        if (((TextMessage) messages).getId() == idChatRoom)
                         printMessage((TextMessage)messages);
                     }
                 }
@@ -152,9 +149,9 @@ public class ChatClient {
                 throw new ChatUncheckedException("Error de-serializing components", e);
             }
             finally {
-//                IOUtils.closeQuietly(socket);
-//                System.exit(1);
-//                System.out.println("Socket closed");
+                IOUtils.closeQuietly(socket);
+                System.exit(1);
+                System.out.println("Socket closed");
             }
         }
     }
