@@ -165,13 +165,13 @@ public class ChatServer {
                 while (!Thread.currentThread().isInterrupted()) {
                     Messages msg = messageQueue.take();
 
-                    if(msg instanceof ChatRoom){
+                    if (msg instanceof ChatRoom) {
                         ChatRoom chatRoom = (ChatRoom) msg;
 
                         Status msgOut = new Status(5, chatRoom.getUsers(), chatRoom.getId());
-                        for(String user : chatRoom.getUsers()){
+                        for (String user : chatRoom.getUsers()) {
                             Connection connection = connectionMap.get(user);
-                            try{
+                            try {
                                 connection.objOut.writeObject(msgOut);
                                 connection.objOut.flush();
                             } catch (IOException e) {
@@ -184,12 +184,12 @@ public class ChatServer {
                         }
                     }
 
-                    if(msg instanceof Status){
+                    if (msg instanceof Status) {
                         Status msgOut = (Status) msg;
 
                         String login = msgOut.getLogin();
                         Connection connection = connectionMap.get(login);
-                        try{
+                        try {
                             connection.objOut.writeObject(msgOut);
                             connection.objOut.flush();
                         } catch (IOException e) {
@@ -200,46 +200,30 @@ public class ChatServer {
                             IOUtils.closeQuietly(connection.socket);
                         }
 
-                    } else if(msg instanceof TextMessage) {
+                    } else if (msg instanceof TextMessage) {
                         TextMessage msgOut = (TextMessage) msg;
 
 //                        if (msgOut.getId()!= 0){
-                            for(ChatRoom list : chatRoomList){
-                                if(msgOut.getId() == list.getId()) {
-                                    List users = list.getUsers();
-                                    for (Object login : users){
-                                        Connection connection = userConnection.get(login);
-                                        try {
+                        for (ChatRoom list : chatRoomList) {
+                            if (msgOut.getId() == list.getId()) {
+                                List users = list.getUsers();
+                                for (Object login : users) {
+                                    Connection connection = userConnection.get(login);
+                                    try {
 
-                                            //TODO save history for ROOMS
-                                            History.saveMessageInFile(msgOut.getId(), msg);
+                                        //TODO save history for ROOMS
+                                        History.saveMessageInFile(msgOut.getId(), msg);
 
-                                            connection.objOut.writeObject(msgOut);
-                                            connection.objOut.flush();
-                                        } catch (IOException e) {
-                                            System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
-                                            userConnection.remove(login);
-                                            IOUtils.closeQuietly(connection.socket);
-                                        }
+                                        connection.objOut.writeObject(msgOut);
+                                        connection.objOut.flush();
+                                    } catch (IOException e) {
+                                        System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+                                        userConnection.remove(login);
+                                        IOUtils.closeQuietly(connection.socket);
                                     }
                                 }
                             }
-//                        } else {
-//                            for (Map.Entry entry : userConnection.entrySet()) {
-//                                Connection connection = (Connection) entry.getValue();
-//                                try {
-//
-//                                    //TODO save history for ALL
-//
-//                                    connection.objOut.writeObject(msgOut);
-//                                    connection.objOut.flush();
-//                                } catch (IOException e) {
-//                                    System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
-//                                    userConnection.remove(entry);
-//                                    IOUtils.closeQuietly(connection.socket);
-//                                }
-//                            }
-//                        }
+                        }
                     }
                 }
             }
