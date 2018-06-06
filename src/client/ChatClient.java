@@ -74,13 +74,14 @@ public class ChatClient {
                 System.out.printf("enter the users you want to add to chatroom\n" +
                         "to stop, enter \"//s\"\n");
                 List<String> users = new ArrayList<>();
+                users.add(name);
                 while (true){
                     msg = scanner.nextLine();
                     if (msg.equals("//s"))
                         break;
                     users.add(msg);
                 }
-                System.out.println(Arrays.toString(users.toArray()));
+                //System.out.println(Arrays.toString(users.toArray()));
                 buildAndSendMessage(users);
             } else if (msg.equals(("//switchroom"))){
                 System.out.println("enter id chatroom");
