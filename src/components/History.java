@@ -13,7 +13,7 @@ public class History {
 
     public static void saveMessageInFile(TextMessage msg) throws IOException {
 
-        String path = "history" +  msg.getId() + ".txt";
+        String path = "history\\history" +  msg.getId() + ".txt";
 
         String mes = FORMAT.format(msg.getTimestamp()) + " : " + msg.getSender() + " > " +  msg.getText() + "\n";
         File file = new File(path);

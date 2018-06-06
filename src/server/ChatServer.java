@@ -35,6 +35,9 @@ public class ChatServer {
         accMap.put("user1", "pass1");
         accMap.put("user2", "pass2");
         accMap.put("user3", "pass3");
+        accMap.put("1", "1");
+        accMap.put("2", "2");
+        accMap.put("3", "3");
     }
 
     private void start() throws IOException {
