@@ -213,8 +213,8 @@ public class ChatServer {
                                     Connection connection = userConnection.get(login);
                                     try {
 
-                                        //TODO save history for ROOMS
-                                        History.saveMessageInFile(msgOut.getId(), msg);
+                                        //TODO save history
+                                        History.saveMessageInFile(msgOut);
 
                                         connection.objOut.writeObject(msgOut);
                                         connection.objOut.flush();
