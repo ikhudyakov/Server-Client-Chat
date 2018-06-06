@@ -1,52 +1,32 @@
 package components;
 
-import javafx.scene.shape.Path;
-import messages.Messages;
 import messages.TextMessage;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 
 public class History {
 
-    public static void saveMessageInFile(TextMessage msg) throws IOException {
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");
 
+    public static void saveMessageInFile(TextMessage msg) throws IOException {
 
         String path = "history" +  msg.getId() + ".txt";
 
-        // проверка, существует ли файл с именем path
-        // если да, то записать в конец файла msg.getText()
-        // если нет, то создать файл с path и записать в него msg.getText()
-
+        String mes = FORMAT.format(msg.getTimestamp()) + " : " + msg.getSender() + " > " +  msg.getText() + "\n";
         File file = new File(path);
-        if (file.createNewFile()) {
-            System.out.println(file + " created");
+        FileWriter fileWriter = new FileWriter(path, true);
+        if (file.exists()){
+            fileWriter.append(mes);
+            fileWriter.flush();
+            fileWriter.close();
         } else {
-
-        }
-
-//        FileWriter fileWriter = new FileWriter(path, true);
-//        fileWriter.append(msg)
-
-  /*      String path = "history" + id + ".txt";
-        String textMess = msg.toString();
-
-        if ((new File(path)).exists()){
-            FileWriter file = new FileWriter(path, true);
-            file.append(textMess);
-        } else {
-            File file = new File(path);
-            System.out.println(file + " created");
-        }*/
-
-        String textMess = msg.toString();
-        try {
-            Files.write(Paths.get(file.getPath()), textMess.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
+            file.createNewFile();
+            fileWriter.append(mes);
+            fileWriter.flush();
+            fileWriter.close();
         }
     }
 }
