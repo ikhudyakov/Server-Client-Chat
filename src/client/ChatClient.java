@@ -70,15 +70,24 @@ public class ChatClient {
             msg += " " + pass;
             buildAndSendMessage(msg);
         }
-        System.out.printf("All Commands:\n// - Show all commands\n//newroom - Crate new chatroom\n//exit - Exit\n//switchroom - " +
-                "Switch chat room(all users ID: 0)\n//allroom - Show all chat room\n");
+        System.out.printf(  "All Commands:\n" +
+                            "// - Show all commands\n" +
+                            "//newroom - Crate new chatroom\n" +
+                            "//exit - Exit\n//switchroom - " +
+                            "Switch chat room(all users ID: 0)\n" +
+                            "//allroom - Show all chat room\n");
+
         System.out.println("Enter message to send: ");
 
         while (true) {
             msg = scanner.nextLine().trim().toLowerCase();
             if (msg.equals(("//"))) {
-                System.out.printf("All Commands:\n//newroom - Crate new chatroom\n//exit - Exit\n//switchroom - " +
-                        "Switch chat room(all users ID: 0)\n//allroom - Show all chat room\n");
+                System.out.printf(  "All Commands:\n" +
+                                    "//newroom - Crate new chatroom\n" +
+                                    "//exit - Exit\n" +
+                                    "//switchroom - " +
+                                    "Switch chat room(all users ID: 0)\n" +
+                                    "//allroom - Show all chat room\n");
             } else if (msg.equals("//newroom")) {
                 System.out.printf("enter the users you want to add to chatroom\n" +
                         "to stop, enter \"//s\"\n");
@@ -108,7 +117,6 @@ public class ChatClient {
                 buildAndSendMessage(msg);
         }
     }
-
 
     private void openConnection() {
         try {

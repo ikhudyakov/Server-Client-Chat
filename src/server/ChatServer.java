@@ -215,8 +215,6 @@ public class ChatServer {
                                 for (Object login : users) {
                                     Connection connection = userConnection.get(login);
                                     try {
-
-                                        //TODO save history
                                         History.saveMessageInFile(msgOut);
 
                                         connection.objOut.writeObject(msgOut);
