@@ -9,11 +9,11 @@ import java.text.SimpleDateFormat;
 
 public class History {
 
-    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm");
 
     public static void saveMessageInFile(TextMessage msg) throws IOException {
 
-        String path = "history\\history" +  msg.getId() + ".txt";
+        String path = "history/history" +  msg.getId() + ".txt";
 
         String mes = FORMAT.format(msg.getTimestamp()) + " : " + msg.getSender() + " > " +  msg.getText() + "\n";
         File file = new File(path);
