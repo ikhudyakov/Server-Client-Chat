@@ -76,13 +76,13 @@ public class ChatClient {
                 break;
             System.out.println("Enter LOGIN");
             name = scanner.nextLine().trim().toLowerCase();
-            while (name.equals("")){
+            while (name.equals("")) {
                 name = scanner.nextLine().trim().toLowerCase();
             }
             msg = name;
             System.out.println("Enter PASSWORD");
             String pass = scanner.nextLine().trim().toLowerCase();
-            while (pass.equals("")){
+            while (pass.equals("")) {
                 pass = scanner.nextLine().trim().toLowerCase();
             }
             msg += " " + pass;
@@ -119,16 +119,24 @@ public class ChatClient {
                 System.out.println(Arrays.toString(allId.toArray()));
             } else if (msg.equals(("//exit"))) {
                 IOUtils.closeQuietly(socket);
+            } else if (msg.equals(("//sendfile"))) {
+                System.out.println("enter path file");
+                String path = scanner.nextLine();
+                sendFile(path);
             } else if (!msg.isEmpty())
                 buildAndSendMessage(msg);
         }
+    }
+
+    private void sendFile(String path) {
+
     }
 
     private void showAllCommands() {
         System.out.print("All Commands:\n// - Show all commands\n" +
                 "//newroom - Crate new chatroom\n//exit - Exit\n" +
                 "//switchroom - Switch chat room(all users ID: 0)\n" +
-                "//allroom - Show all chat room\n");
+                "//allroom - Show all chat room\n//sendfile - Send file (path)\n");
     }
 
     private void authentication() throws InterruptedException {
@@ -140,13 +148,13 @@ public class ChatClient {
                 break;
             System.out.println("Enter LOGIN");
             name = scanner.nextLine().trim().toLowerCase();
-            while (name.equals("")){
+            while (name.equals("")) {
                 name = scanner.nextLine().trim().toLowerCase();
             }
             msg = name;
             System.out.println("Enter PASSWORD");
             String pass = scanner.nextLine().trim().toLowerCase();
-            while (pass.equals("")){
+            while (pass.equals("")) {
                 pass = scanner.nextLine().trim().toLowerCase();
             }
             msg += " " + pass;
@@ -253,7 +261,7 @@ public class ChatClient {
     private void buildAndSendMessage(String msg) {
         Messages messages = null;
 
-        if(clientState == ClientState.REGISTRATION){
+        if (clientState == ClientState.REGISTRATION) {
             messages = new Registration(msg);
         }
 
