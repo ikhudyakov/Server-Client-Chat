@@ -2,11 +2,11 @@ package messages;
 
 import java.io.Serializable;
 
-public class LoginCommand implements Commands, Serializable {
-    String login;
-    String password;
+public class Authentication implements Commands, Serializable {
+    private String login;
+    private String password;
 
-    public LoginCommand(String msg) {
+    public Authentication(String msg) {
         split(msg);
     }
 
@@ -15,7 +15,6 @@ public class LoginCommand implements Commands, Serializable {
         this.login = strings[0];
         this.password = strings[1];
     }
-
 
     public String getLogin() {
         return login;

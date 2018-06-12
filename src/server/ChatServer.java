@@ -1,4 +1,5 @@
 package server;
+
 import components.*;
 import messages.*;
 import components.Connection;
@@ -24,7 +25,7 @@ public class ChatServer {
     private Map<String, Connection> connectionMap = new ConcurrentHashMap<>();
     private List<ChatRoom> chatRoomList = new ArrayList<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
-    private byte [] header = {(byte) 0xAA, (byte) 0xAA};
+    private byte[] header = {(byte) 0xAA, (byte) 0xAA};
     private Map<String, String> accMap = new HashMap<>();
     private ChatRoom chat;
 
@@ -60,8 +61,7 @@ public class ChatServer {
                     Connection con = new Connection(sock);      // Создаем новое соединение с подключенным к серверу клиентом
                     System.out.println("success connection");
                     new Thread(new Reader(con)).start();
-                }
-                else {
+                } else {
                     System.out.println("Wrong header: " + Arrays.toString(buf));
                 }
             }
@@ -80,22 +80,46 @@ public class ChatServer {
             ObjectInputStream objIn;
             Status status;
             String login = null;
+            String password;
             try {
                 objIn = new ObjectInputStream(con.socket.getInputStream());
-                System.out.printf("[%s] connected %s\n",FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+                System.out.printf("[%s] connected %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
 
                 while (!Thread.currentThread().isInterrupted()) {
 
-                    Messages messages = (Messages)objIn.readObject();
-                    if(messages instanceof LoginCommand){                           // Проверка на принадлежность message к классу LoginCommand
-                        LoginCommand loginCommand = (LoginCommand) messages;
-                        login = loginCommand.getLogin();
+                    Messages messages = (Messages) objIn.readObject();
+
+                    if (messages instanceof Registration) {
+                        Registration registration = (Registration) messages;
+                        login = registration.getLogin();
+                        password = registration.getPassword();
+                        connectionMap.put(login, con);
+                        if (!accMap.containsKey(login)) {
+                            accMap.put(login, password);
+                            status = new Status(6, login);
+                        } else {
+                            status = new Status(7, login);
+                        }
+                        switch (status.getStatusCode()) {
+                            case 6:
+                                System.out.printf("[%s] Successful authentication\n",FORMAT.format(System.currentTimeMillis()));
+                                break;
+                            case 7:
+                                System.out.printf("[%s] login [%s] already exists\n",FORMAT.format(System.currentTimeMillis()), login);
+                                break;
+                        }
+                        messageQueue.add(status);
+                    }
+
+                    if (messages instanceof Authentication) {                           // Проверка на принадлежность message к классу Authentication
+                        Authentication authentication = (Authentication) messages;
+                        login = authentication.getLogin();
                         connectionMap.put(login, con);
 
-                        if(accMap.containsKey(login)){                              // Содержит ли Мар полученный логин
-                            String password = accMap.get(login);
-                            if(password.equals(loginCommand.getPassword())){        // Сравниваем взятый из Мар пароль с полученным от клиента
-                                if(userConnection.containsKey(login)) {
+                        if (accMap.containsKey(login)) {                              // Содержит ли Мар полученный логин
+                            password = accMap.get(login);
+                            if (password.equals(authentication.getPassword())) {        // Сравниваем взятый из Мар пароль с полученным от клиента
+                                if (userConnection.containsKey(login)) {
                                     System.out.printf("[%s] user with login \"%s\" was authorized\n", FORMAT.format(System.currentTimeMillis()), login);
                                     userConnection.get(login).socket.close();
                                 }
@@ -105,15 +129,15 @@ public class ChatServer {
                                     e.printStackTrace();             // того, как мы кладем новый логин и сокет userConnection.put(login, con);
                                 }                                    // поэтому он удалял новые данные из мапы и сообзения опять не рассылались
                                 status = new Status(1, login);
-                                    userConnection.put(login, con);
-                                    if(!chat.getUsers().contains(login)) {
-                                        chat.setUsers(login);
-                                    }
-                                    if(chatRoomList.size() > 0) {
-                                        chatRoomList.remove(0);
-                                    }
-                                    chatRoomList.add(0, chat);
-                            } else{
+                                userConnection.put(login, con);
+                                if (!chat.getUsers().contains(login)) {
+                                    chat.setUsers(login);
+                                }
+                                if (chatRoomList.size() > 0) {
+                                    chatRoomList.remove(0);
+                                }
+                                chatRoomList.add(0, chat);
+                            } else {
                                 status = new Status(3, login);
                             }
                         } else {
@@ -121,7 +145,7 @@ public class ChatServer {
                         }
                         switch (status.getStatusCode()) {
                             case 1:
-                                System.out.printf("[%s] Success %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+                                System.out.printf("[%s] Successful authentication %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
                             case 2:
                                 System.out.printf("[%s] incorrect login %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
@@ -129,30 +153,30 @@ public class ChatServer {
                             case 3:
                                 System.out.printf("[%s] incorrect password %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
+                            case 5:
+                                System.out.printf("[%s] created ChatRoom with %s ID: %d\n",FORMAT.format(System.currentTimeMillis()), Arrays.toString(status.getUsers().toArray()), status.getIdChatRoom());
+                                break;
                         }
                         messageQueue.add(status);
 
-                    } else if(messages instanceof ChatRoom){
+                    } else if (messages instanceof ChatRoom) {
 
                         ChatRoom chatRoom = (ChatRoom) messages;
                         chatRoomList.add(chatRoom);
                         messageQueue.add(chatRoom);
-                        System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());
+                        //System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());
 
-                    } else if(messages instanceof TextMessage){
+                    } else if (messages instanceof TextMessage) {
                         messageQueue.add(messages);
-                        printMessage((TextMessage)messages);
+                        printMessage((TextMessage) messages);
                     }
                 }
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 //e.printStackTrace();
                 System.err.printf("[%s] Disconnected %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
-            }
-            catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException e) {
                 throw new ChatUncheckedException("Error de-serializing components", e);
-            }
-            finally {       // выполнится в любом случае
+            } finally {       // выполнится в любом случае
 
                 if (login != null && userConnection.containsKey(login))
 //                    chat.getUsers().remove(login);
@@ -231,8 +255,7 @@ public class ChatServer {
                         }
                     }
                 }
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 throw new ChatUncheckedException("Writer was interrupted", e);
             }
         }
