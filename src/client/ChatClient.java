@@ -1,6 +1,7 @@
 package client;
 
 import components.*;
+import javafx.application.Application;
 import messages.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
@@ -12,7 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class ChatClient extends Application{
+public class ChatClient extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
