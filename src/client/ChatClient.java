@@ -1,7 +1,6 @@
 package client;
 
 import components.*;
-import javafx.application.Application;
 import messages.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
@@ -26,16 +25,17 @@ public class ChatClient extends Application{
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");    // формат времени
     private SocketAddress serverAddress;    // канал связи
     private String name;
-    private String pass;
     private Scanner scanner;
     private Socket socket;
     private ObjectOutputStream objOut;
     private int idChatRoom = 0;
     private List<Integer> allId;
+    private String msg;
 
     enum ClientState {
         CONNECTED,
-        LOGGED_IN
+        LOGGED_IN,
+        REGISTRATION
     }
 
     private ClientState clientState;
@@ -45,7 +45,6 @@ public class ChatClient extends Application{
         this.scanner = scanner;
         allId = new ArrayList<>();
         allId.add(idChatRoom);
-
     }
 
     private void start() throws IOException, InterruptedException {
@@ -55,47 +54,55 @@ public class ChatClient extends Application{
         Thread reader = new Thread(new Reader(socket));
         reader.start();
 
-        System.out.println(clientState);
-        String msg;
+        System.out.println("1 - sign up\n2 - log in");
+        msg = scanner.nextLine();
+        switch (msg) {
+            case "1":
+                registration();
+                authentication();
+                break;
+            case "2":
+                authentication();
+                break;
+            default:
+                System.out.println("error");
+                break;
+        }
+        showAllCommands();
+        System.out.println("Enter message to send: ");
+        textScanner();
+    }
 
+    private void registration() throws InterruptedException {
+        clientState = ClientState.REGISTRATION;
+        System.out.println("registration");
         while (true) {
             Thread.sleep(1000);
-            if (clientState == ClientState.LOGGED_IN)
+            if (clientState == ClientState.CONNECTED)
                 break;
             System.out.println("Enter LOGIN");
             name = scanner.nextLine().trim().toLowerCase();
-            while (name.equals("")){
+            while (name.equals("")) {
                 name = scanner.nextLine().trim().toLowerCase();
             }
             msg = name;
             System.out.println("Enter PASSWORD");
-            pass = scanner.nextLine().trim().toLowerCase();
-            while (pass.equals("")){
+            String pass = scanner.nextLine().trim().toLowerCase();
+            while (pass.equals("")) {
                 pass = scanner.nextLine().trim().toLowerCase();
             }
             msg += " " + pass;
             buildAndSendMessage(msg);
         }
-        System.out.printf(  "All Commands:\n" +
-                            "// - Show all commands\n" +
-                            "//newroom - Crate new chatroom\n" +
-                            "//exit - Exit\n//switchroom - " +
-                            "Switch chat room(all users ID: 0)\n" +
-                            "//allroom - Show all chat room\n");
+    }
 
-        System.out.println("Enter message to send: ");
-
-        while (true) {
+    private void textScanner() {
+        while (!Thread.currentThread().isInterrupted()) {
             msg = scanner.nextLine().trim().toLowerCase();
             if (msg.equals(("//"))) {
-                System.out.printf(  "All Commands:\n" +
-                                    "//newroom - Crate new chatroom\n" +
-                                    "//exit - Exit\n" +
-                                    "//switchroom - " +
-                                    "Switch chat room(all users ID: 0)\n" +
-                                    "//allroom - Show all chat room\n");
+                showAllCommands();
             } else if (msg.equals("//newroom")) {
-                System.out.printf("enter the users you want to add to chatroom\n" +
+                System.out.print("enter the users you want to add to chatroom\n" +
                         "to stop, enter \"//s\"\n");
                 List<String> users = new ArrayList<>();
                 users.add(name);
@@ -105,7 +112,6 @@ public class ChatClient extends Application{
                         break;
                     users.add(msg);
                 }
-                //System.out.println(Arrays.toString(users.toArray()));
                 buildAndSendMessage(users);
             } else if (msg.equals(("//switchroom"))) {
                 System.out.println("enter id chatroom");
@@ -119,10 +125,49 @@ public class ChatClient extends Application{
                 System.out.println(Arrays.toString(allId.toArray()));
             } else if (msg.equals(("//exit"))) {
                 IOUtils.closeQuietly(socket);
-            } else if (msg != null && !msg.isEmpty())
+            } else if (msg.equals(("//sendfile"))) {
+                System.out.println("enter path file");
+                String path = scanner.nextLine();
+                sendFile(path);
+            } else if (!msg.isEmpty())
                 buildAndSendMessage(msg);
         }
     }
+
+    private void sendFile(String path) {
+
+    }
+
+    private void showAllCommands() {
+        System.out.print("All Commands:\n// - Show all commands\n" +
+                "//newroom - Crate new chatroom\n//exit - Exit\n" +
+                "//switchroom - Switch chat room(all users ID: 0)\n" +
+                "//allroom - Show all chat room\n//sendfile - Send file (path)\n");
+    }
+
+    private void authentication() throws InterruptedException {
+        String msg;
+        System.out.println("authentication");
+        while (true) {
+            Thread.sleep(1000);
+            if (clientState == ClientState.LOGGED_IN)
+                break;
+            System.out.println("Enter LOGIN");
+            name = scanner.nextLine().trim().toLowerCase();
+            while (name.equals("")) {
+                name = scanner.nextLine().trim().toLowerCase();
+            }
+            msg = name;
+            System.out.println("Enter PASSWORD");
+            String pass = scanner.nextLine().trim().toLowerCase();
+            while (pass.equals("")) {
+                pass = scanner.nextLine().trim().toLowerCase();
+            }
+            msg += " " + pass;
+            buildAndSendMessage(msg);
+        }
+    }
+
 
     private void openConnection() {
         try {
@@ -175,6 +220,13 @@ public class ChatClient extends Application{
                             case 5:
                                 System.out.printf("created ChatRoom with %s ID: %d\n", Arrays.toString(status.getUsers().toArray()), status.getIdChatRoom());
                                 break;
+                            case 6:
+                                System.out.println("Successful authentication");
+                                clientState = ClientState.CONNECTED;
+                                break;
+                            case 7:
+                                System.out.println("login already exists");
+                                break;
                         }
                     } else if (messages instanceof TextMessage) {
                         if (((TextMessage) messages).getId() == idChatRoom)
@@ -215,10 +267,14 @@ public class ChatClient extends Application{
     private void buildAndSendMessage(String msg) {
         Messages messages = null;
 
+        if (clientState == ClientState.REGISTRATION) {
+            messages = new Registration(msg);
+        }
+
         if (clientState == ClientState.LOGGED_IN) {
             messages = new TextMessage(idChatRoom, System.currentTimeMillis(), name, msg);
         } else if (clientState == ClientState.CONNECTED) {
-            messages = new LoginCommand(msg);
+            messages = new Authentication(msg);
         }
         try {
             objOut.writeObject(messages);
