@@ -10,8 +10,11 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.*;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -28,6 +31,7 @@ public class ChatServer {
     private byte[] header = {(byte) 0xAA, (byte) 0xAA};
     private Map<String, String> accMap = new HashMap<>();
     private ChatRoom chat;
+    //private final String DBUrl = "jdbc:postgresql://localhost:5432/DBName";
 
 
     private ChatServer(int port) {
@@ -81,9 +85,13 @@ public class ChatServer {
             Status status;
             String login = null;
             String password;
+
             try {
                 objIn = new ObjectInputStream(con.socket.getInputStream());
                 System.out.printf("[%s] connected %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+
+                Class.forName("org.postgresql.Driver");
+
 
                 while (!Thread.currentThread().isInterrupted()) {
 
@@ -94,6 +102,17 @@ public class ChatServer {
                         login = registration.getLogin();
                         password = registration.getPassword();
                         connectionMap.put(login, con);
+
+                        try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb", "postgres", "masterkey")) {
+                            // Подготавливаем запрос, который будет закэширован, а аргументы заменяем ?
+                            PreparedStatement prepared = JDBCConnection.prepareStatement("INSERT INTO USERS (ID, LOGIN, PASSWORD) VALUES (?,?,?)");
+                            // Устанавливаем на места ? конкретные аргументы
+                            prepared.setInt(1, 1);
+                            prepared.setString(2, login);
+                            prepared.setString(3, password);
+                            prepared.executeUpdate();
+                        }
+
                         if (!accMap.containsKey(login)) {
                             accMap.put(login, password);
                             status = new Status(6, login);
@@ -102,10 +121,10 @@ public class ChatServer {
                         }
                         switch (status.getStatusCode()) {
                             case 6:
-                                System.out.printf("[%s] Successful authentication\n",FORMAT.format(System.currentTimeMillis()));
+                                System.out.printf("[%s] Successful authentication\n", FORMAT.format(System.currentTimeMillis()));
                                 break;
                             case 7:
-                                System.out.printf("[%s] login [%s] already exists\n",FORMAT.format(System.currentTimeMillis()), login);
+                                System.out.printf("[%s] login [%s] already exists\n", FORMAT.format(System.currentTimeMillis()), login);
                                 break;
                         }
                         messageQueue.add(status);
@@ -153,9 +172,6 @@ public class ChatServer {
                             case 3:
                                 System.out.printf("[%s] incorrect password %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
                                 break;
-                            case 5:
-                                System.out.printf("[%s] created ChatRoom with %s ID: %d\n",FORMAT.format(System.currentTimeMillis()), Arrays.toString(status.getUsers().toArray()), status.getIdChatRoom());
-                                break;
                         }
                         messageQueue.add(status);
 
@@ -164,7 +180,7 @@ public class ChatServer {
                         ChatRoom chatRoom = (ChatRoom) messages;
                         chatRoomList.add(chatRoom);
                         messageQueue.add(chatRoom);
-                        //System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());
+                        System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());
 
                     } else if (messages instanceof TextMessage) {
                         messageQueue.add(messages);
@@ -176,6 +192,8 @@ public class ChatServer {
                 System.err.printf("[%s] Disconnected %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
             } catch (ClassNotFoundException e) {
                 throw new ChatUncheckedException("Error de-serializing components", e);
+            } catch (SQLException e) {
+                e.printStackTrace();
             } finally {       // выполнится в любом случае
 
                 if (login != null && userConnection.containsKey(login))
