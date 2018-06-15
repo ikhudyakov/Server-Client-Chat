@@ -31,6 +31,7 @@ public class ChatServer {
     private byte[] header = {(byte) 0xAA, (byte) 0xAA};
     private Map<String, String> accMap = new HashMap<>();
     private ChatRoom chat;
+    private static int incId = 0;
     //private final String DBUrl = "jdbc:postgresql://localhost:5432/DBName";
 
 
@@ -107,7 +108,7 @@ public class ChatServer {
                             // Подготавливаем запрос, который будет закэширован, а аргументы заменяем ?
                             PreparedStatement prepared = JDBCConnection.prepareStatement("INSERT INTO USERS (ID, LOGIN, PASSWORD) VALUES (?,?,?)");
                             // Устанавливаем на места ? конкретные аргументы
-                            prepared.setInt(1, 1);
+                            prepared.setInt(1, ++incId);
                             prepared.setString(2, login);
                             prepared.setString(3, password);
                             prepared.executeUpdate();
