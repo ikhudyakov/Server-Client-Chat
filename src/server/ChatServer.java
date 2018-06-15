@@ -106,11 +106,11 @@ public class ChatServer {
 
                         try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb", "admin", "1qaz2wsx")) {
                             // Подготавливаем запрос, который будет закэширован, а аргументы заменяем ?
-                            PreparedStatement prepared = JDBCConnection.prepareStatement("INSERT INTO USERS (ID, LOGIN, PASSWORD) VALUES (?,?,?)");
+                            PreparedStatement prepared = JDBCConnection.prepareStatement("INSERT INTO USERS (ID, LOGIN, PASSWORD) VALUES (nextval('iduser'),?,?)");
                             // Устанавливаем на места ? конкретные аргументы
-                            prepared.setInt(1, ++incId);
-                            prepared.setString(2, login);
-                            prepared.setString(3, password);
+                            //prepared.setInt(1, ++incId);
+                            prepared.setString(1, login);
+                            prepared.setString(2, password);
                             prepared.executeUpdate();
                         }
 
