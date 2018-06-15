@@ -1,20 +1,27 @@
 package client;
 
 import components.*;
+import javafx.application.Application;
 import messages.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.*;
+import javafx.stage.Stage;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
+import java.io.*;
+import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class ChatClient {
+public class ChatClient extends Application {
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+        primaryStage.setTitle("ChatTick");
+        primaryStage.setScene(new Scene(root, 600, 400));
+        primaryStage.show();
+    }
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");    // формат времени
     private SocketAddress serverAddress;    // канал связи
@@ -286,6 +293,9 @@ public class ChatClient {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
+
+        //launch(args);
+        //ChatServer.main(8080);
         String address = null;
 
         if (args != null && args.length > 0)
@@ -295,7 +305,6 @@ public class ChatClient {
 
         if (address == null) {
             System.out.println("Enter server address");
-
             address = scanner.nextLine();
         }
 
