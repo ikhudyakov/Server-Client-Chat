@@ -104,7 +104,7 @@ public class ChatServer {
                         password = registration.getPassword();
                         connectionMap.put(login, con);
 
-                        try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb", "postgres", "masterkey")) {
+                        try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb", "admin", "1qaz2wsx")) {
                             // Подготавливаем запрос, который будет закэширован, а аргументы заменяем ?
                             PreparedStatement prepared = JDBCConnection.prepareStatement("INSERT INTO USERS (ID, LOGIN, PASSWORD) VALUES (?,?,?)");
                             // Устанавливаем на места ? конкретные аргументы
