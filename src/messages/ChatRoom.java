@@ -4,17 +4,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatRoom implements Commands, Serializable{
+public class ChatRoom implements Commands, Serializable {
 
-    private static int incId = 0;
+    //    private static int incId = 0;
     private int id;
     private List<String> users;
 
     public ChatRoom(List<String> users) {
-        incId++;
-        this.id = incId;
+//        incId++;
+        this.id = -1;
         this.users = users;
     }
+
     public ChatRoom() {
         this.id = 0;
         users = new ArrayList<>();
@@ -30,5 +31,9 @@ public class ChatRoom implements Commands, Serializable{
 
     public List<String> getUsers() {
         return users;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

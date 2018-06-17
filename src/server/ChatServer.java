@@ -31,11 +31,31 @@ public class ChatServer {
     private byte[] header = {(byte) 0xAA, (byte) 0xAA};
     //private Map<String, String> accMap = new HashMap<>();
     private ChatRoom chat;
+    private static int incId;
 
 
     private ChatServer(int port) {
         chat = new ChatRoom();
         this.port = port;
+        int test = 0;
+        try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb",
+                "admin", "1qaz2wsx")) {
+            PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT id_room FROM chatrooms");
+            try (ResultSet rs = prepared.executeQuery()) {
+                if (rs.next()) {
+                    while (rs.next()){
+                        test = rs.getInt("id_room");
+                        if (test > incId){
+                            incId = test;
+                        }
+                    }
+                } else incId = 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void start() throws IOException {
@@ -171,7 +191,15 @@ public class ChatServer {
                                                 } catch (InterruptedException e) {
                                                     e.printStackTrace();
                                                 }
-                                                status = new Status(1, dbLogin);
+                                                prepared = JDBCConnection.prepareStatement("SELECT id_room FROM chatrooms WHERE login=?");
+                                                prepared.setString(1, dbLogin);
+                                                List<Integer> allId = new ArrayList<>();
+                                                try (ResultSet rs2 = prepared.executeQuery()) {
+                                                    while (rs2.next()) {
+                                                        allId.add(rs2.getInt("id_room"));
+                                                    }
+                                                }
+                                                status = new Status(1, dbLogin, allId);
                                                 userConnection.put(dbLogin, con);
                                                 if (!chat.getUsers().contains(dbLogin)) {
                                                     chat.setUsers(dbLogin);
@@ -248,6 +276,16 @@ public class ChatServer {
                         else if (messages instanceof ChatRoom) {
 
                             ChatRoom chatRoom = (ChatRoom) messages;
+                            chatRoom.setId(++incId);
+                            List<String> chatUser = chatRoom.getUsers();
+                            for (String user : chatUser) {
+                                PreparedStatement prepared = JDBCConnection.prepareStatement("INSERT INTO CHATROOMS (ID_ROOM, LOGIN) VALUES (?,?)");
+                                prepared.setInt(1, chatRoom.getId());
+                                prepared.setString(2, user);
+                                prepared.executeUpdate();
+                            }
+
+
                             chatRoomList.add(chatRoom);
                             messageQueue.add(chatRoom);
                             System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());

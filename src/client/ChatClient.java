@@ -45,7 +45,7 @@ public class ChatClient extends Application {
         this.serverAddress = serverAddress;
         this.scanner = scanner;
         allId = new ArrayList<>();
-        allId.add(idChatRoom);
+        //allId.add(idChatRoom);
     }
 
     private void start() throws IOException, InterruptedException {
@@ -208,6 +208,8 @@ public class ChatClient extends Application {
                         switch (status.getStatusCode()) {
                             case 1:
                                 System.out.println("Success");
+                                allId = status.getAllId();
+                                allId.add(0);
                                 clientState = ClientState.LOGGED_IN;
                                 break;
                             case 2:
