@@ -29,21 +29,13 @@ public class ChatServer {
     private List<ChatRoom> chatRoomList = new ArrayList<>();
     private final BlockingDeque<Messages> messageQueue = new LinkedBlockingDeque<>();
     private byte[] header = {(byte) 0xAA, (byte) 0xAA};
-    private Map<String, String> accMap = new HashMap<>();
+    //private Map<String, String> accMap = new HashMap<>();
     private ChatRoom chat;
-    private static int incId = 0;
-    //private final String DBUrl = "jdbc:postgresql://localhost:5432/DBName";
 
 
     private ChatServer(int port) {
         chat = new ChatRoom();
         this.port = port;
-        accMap.put("user1", "pass1");
-        accMap.put("user2", "pass2");
-        accMap.put("user3", "pass3");
-        accMap.put("1", "1");
-        accMap.put("2", "2");
-        accMap.put("3", "3");
     }
 
     private void start() throws IOException {
@@ -83,7 +75,7 @@ public class ChatServer {
         @Override
         public void run() {
             ObjectInputStream objIn;
-            Status status;
+            Status status = null;
             String login = null;
             String password;
 
@@ -95,24 +87,45 @@ public class ChatServer {
 
 
                 while (!Thread.currentThread().isInterrupted()) {
+                    try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb",
+                            "admin", "1qaz2wsx")) {
 
-                    Messages messages = (Messages) objIn.readObject();
+                        Messages messages = (Messages) objIn.readObject();
 
-                    if (messages instanceof Registration) {
-                        Registration registration = (Registration) messages;
-                        login = registration.getLogin();
-                        password = registration.getPassword();
-                        connectionMap.put(login, con);
+                        if (messages instanceof Registration) {
+                            Registration registration = (Registration) messages;
+                            login = registration.getLogin();
+                            password = registration.getPassword();
+                            connectionMap.put(login, con);
 
-                        try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb", "admin", "1qaz2wsx")) {
-                            // Подготавливаем запрос, который будет закэширован, а аргументы заменяем ?
-                            PreparedStatement prepared = JDBCConnection.prepareStatement("INSERT INTO USERS (ID, LOGIN, PASSWORD) VALUES (nextval('iduser'),?,?)");
-                            // Устанавливаем на места ? конкретные аргументы
-                            //prepared.setInt(1, ++incId);
+
+                            PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT * FROM users WHERE login=?");
                             prepared.setString(1, login);
-                            prepared.setString(2, password);
-                            prepared.executeUpdate();
+
+                            try (ResultSet rs = prepared.executeQuery()) {
+                                if (rs.next()) {
+                                    String dbLogin = rs.getString("login");
+                                    status = new Status(7, dbLogin);
+                                } else {
+                                    prepared = JDBCConnection.prepareStatement("INSERT INTO USERS (ID, LOGIN, PASSWORD) VALUES (nextval('iduser'),?,?)");
+                                    prepared.setString(1, login);
+                                    prepared.setString(2, password);
+                                    prepared.executeUpdate();
+                                    status = new Status(6, login);
+                                }
+                                switch (status.getStatusCode()) {
+                                    case 6:
+                                        System.out.printf("[%s] Successful authentication\n", FORMAT.format(System.currentTimeMillis()));
+                                        break;
+                                    case 7:
+                                        System.out.printf("[%s] login [%s] already exists\n", FORMAT.format(System.currentTimeMillis()), login);
+                                        break;
+                                }
+                                messageQueue.add(status);
+                            }
                         }
+/*
+                        Работа с MAP
 
                         if (!accMap.containsKey(login)) {
                             accMap.put(login, password);
@@ -129,63 +142,120 @@ public class ChatServer {
                                 break;
                         }
                         messageQueue.add(status);
-                    }
+*/
 
-                    if (messages instanceof Authentication) {                           // Проверка на принадлежность message к классу Authentication
-                        Authentication authentication = (Authentication) messages;
-                        login = authentication.getLogin();
-                        connectionMap.put(login, con);
 
-                        if (accMap.containsKey(login)) {                              // Содержит ли Мар полученный логин
-                            password = accMap.get(login);
-                            if (password.equals(authentication.getPassword())) {        // Сравниваем взятый из Мар пароль с полученным от клиента
-                                if (userConnection.containsKey(login)) {
-                                    System.out.printf("[%s] user with login \"%s\" was authorized\n", FORMAT.format(System.currentTimeMillis()), login);
-                                    userConnection.get(login).socket.close();
+                        if (messages instanceof Authentication) {                           // Проверка на принадлежность message к классу Authentication
+                            Authentication authentication = (Authentication) messages;
+                            login = authentication.getLogin();
+                            password = authentication.getPassword();
+                            connectionMap.put(login, con);
+
+                            PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT * FROM users WHERE login=?");
+                            prepared.setString(1, login);
+                            try (ResultSet rs = prepared.executeQuery()) {
+                                if (rs.next()) {
+                                    String dbLogin = rs.getString("login");
+                                    prepared = JDBCConnection.prepareStatement("SELECT password FROM users WHERE login=?");
+                                    prepared.setString(1, dbLogin);
+                                    try (ResultSet rs1 = prepared.executeQuery()) {
+                                        while (rs1.next()) {
+                                            String dbPassword = rs.getString("password");
+                                            if (dbPassword.equals(password)) {
+                                                if (userConnection.containsKey(login)) {
+                                                    System.out.printf("[%s] user with login \"%s\" was authorized\n", FORMAT.format(System.currentTimeMillis()), login);
+                                                    userConnection.get(login).socket.close();
+                                                }
+                                                try {
+                                                    Thread.sleep(500);
+                                                } catch (InterruptedException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                status = new Status(1, dbLogin);
+                                                userConnection.put(dbLogin, con);
+                                                if (!chat.getUsers().contains(dbLogin)) {
+                                                    chat.setUsers(dbLogin);
+                                                }
+                                                if (chatRoomList.size() > 0) {
+                                                    chatRoomList.remove(0);
+                                                }
+                                                chatRoomList.add(0, chat);
+                                            } else status = new Status(3, login);
+                                        }
+                                    }
+                                } else {
+                                    status = new Status(2, login);
                                 }
-                                try {
-                                    Thread.sleep(500);          // если усыпить поток, тогда вроде работает
-                                } catch (InterruptedException e) {   // а без этого, блок finally видимо выполнялся после
-                                    e.printStackTrace();             // того, как мы кладем новый логин и сокет userConnection.put(login, con);
-                                }                                    // поэтому он удалял новые данные из мапы и сообзения опять не рассылались
-                                status = new Status(1, login);
-                                userConnection.put(login, con);
-                                if (!chat.getUsers().contains(login)) {
-                                    chat.setUsers(login);
+                                switch (status.getStatusCode()) {
+                                    case 1:
+                                        System.out.printf("[%s] Successful authentication %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+                                        break;
+                                    case 2:
+                                        System.out.printf("[%s] incorrect login %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+                                        break;
+                                    case 3:
+                                        System.out.printf("[%s] incorrect password %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+                                        break;
                                 }
-                                if (chatRoomList.size() > 0) {
-                                    chatRoomList.remove(0);
-                                }
-                                chatRoomList.add(0, chat);
-                            } else {
-                                status = new Status(3, login);
+                                messageQueue.add(status);
                             }
-                        } else {
-                            status = new Status(2, login);
+
                         }
-                        switch (status.getStatusCode()) {
-                            case 1:
-                                System.out.printf("[%s] Successful authentication %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
-                                break;
-                            case 2:
-                                System.out.printf("[%s] incorrect login %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
-                                break;
-                            case 3:
-                                System.out.printf("[%s] incorrect password %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
-                                break;
+/*
+                            if (accMap.containsKey(login)) {                              // Содержит ли Мар полученный логин
+                                password = accMap.get(login);
+                                if (password.equals(authentication.getPassword())) {        // Сравниваем взятый из Мар пароль с полученным от клиента
+                                    if (userConnection.containsKey(login)) {
+                                        System.out.printf("[%s] user with login \"%s\" was authorized\n", FORMAT.format(System.currentTimeMillis()), login);
+                                        userConnection.get(login).socket.close();
+                                    }
+                                    try {
+                                        Thread.sleep(500);          // если усыпить поток, тогда вроде работает
+                                    } catch (InterruptedException e) {   // а без этого, блок finally видимо выполнялся после
+                                        e.printStackTrace();             // того, как мы кладем новый логин и сокет userConnection.put(login, con);
+                                    }                                    // поэтому он удалял новые данные из мапы и сообзения опять не рассылались
+                                    status = new Status(1, login);
+                                    userConnection.put(login, con);
+                                    if (!chat.getUsers().contains(login)) {
+                                        chat.setUsers(login);
+                                    }
+                                    if (chatRoomList.size() > 0) {
+                                        chatRoomList.remove(0);
+                                    }
+                                    chatRoomList.add(0, chat);
+                                } else {
+                                    status = new Status(3, login);
+                                }
+                            } else {
+                                status = new Status(2, login);
+                            }
+                            switch (status.getStatusCode()) {
+                                case 1:
+                                    System.out.printf("[%s] Successful authentication %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+                                    break;
+                                case 2:
+                                    System.out.printf("[%s] incorrect login %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+                                    break;
+                                case 3:
+                                    System.out.printf("[%s] incorrect password %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
+                                    break;
+                            }
+                            messageQueue.add(status);
+
+                        }*/
+
+
+                        else if (messages instanceof ChatRoom) {
+
+                            ChatRoom chatRoom = (ChatRoom) messages;
+                            chatRoomList.add(chatRoom);
+                            messageQueue.add(chatRoom);
+                            System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());
+
+                        } else if (messages instanceof TextMessage) {
+                            messageQueue.add(messages);
+                            printMessage((TextMessage) messages);
                         }
-                        messageQueue.add(status);
-
-                    } else if (messages instanceof ChatRoom) {
-
-                        ChatRoom chatRoom = (ChatRoom) messages;
-                        chatRoomList.add(chatRoom);
-                        messageQueue.add(chatRoom);
-                        System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());
-
-                    } else if (messages instanceof TextMessage) {
-                        messageQueue.add(messages);
-                        printMessage((TextMessage) messages);
                     }
                 }
             } catch (IOException e) {

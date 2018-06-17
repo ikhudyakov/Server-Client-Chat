@@ -226,7 +226,7 @@ public class ChatClient extends Application {
                                 clientState = ClientState.CONNECTED;
                                 break;
                             case 7:
-                                System.out.println("login already exists");
+                                System.out.printf("login [%s] already exists\n", status.getLogin());
                                 break;
                         }
                     } else if (messages instanceof TextMessage) {
