@@ -45,7 +45,6 @@ public class ChatClient extends Application {
         this.serverAddress = serverAddress;
         this.scanner = scanner;
         allId = new ArrayList<>();
-        //allId.add(idChatRoom);
     }
 
     private void start() throws IOException, InterruptedException {
@@ -100,7 +99,7 @@ public class ChatClient extends Application {
     private void textScanner() {
         while (!Thread.currentThread().isInterrupted()) {
             msg = scanner.nextLine().trim().toLowerCase();
-            if (msg.equals(("//"))) {
+            if (msg.equals("//")) {
                 showAllCommands();
             } else if (msg.equals("//newroom")) {
                 System.out.print("enter the users you want to add to chatroom\n" +
@@ -114,7 +113,7 @@ public class ChatClient extends Application {
                     users.add(msg);
                 }
                 buildAndSendMessage(users);
-            } else if (msg.equals(("//switchroom"))) {
+            } else if (msg.equals("//switchroom")) {
                 System.out.println("enter id chatroom");
                 msg = scanner.nextLine();
                 if (allId.contains(Integer.parseInt(msg))) {
@@ -122,14 +121,16 @@ public class ChatClient extends Application {
                 } else {
                     System.out.println("Error room ID");
                 }
-            } else if (msg.equals(("//allroom"))) {
+            } else if (msg.equals("//allroom")) {
                 System.out.println(Arrays.toString(allId.toArray()));
-            } else if (msg.equals(("//exit"))) {
+            } else if (msg.equals("//exit")) {
                 IOUtils.closeQuietly(socket);
-            } else if (msg.equals(("//sendfile"))) {
+            } else if (msg.equals("//sendfile")) {
                 System.out.println("enter path file");
                 String path = scanner.nextLine();
                 sendFile(path);
+            } else if (msg.equals("//showhistory")) {
+                buildAndSendMessage(idChatRoom, name);
             } else if (!msg.isEmpty())
                 buildAndSendMessage(msg);
         }
@@ -234,6 +235,8 @@ public class ChatClient extends Application {
                     } else if (messages instanceof TextMessage) {
                         if (((TextMessage) messages).getId() == idChatRoom)
                             printMessage((TextMessage) messages);
+                    } else if (messages instanceof ShowHistory){
+                        System.out.println(((ShowHistory) messages).getText());
                     }
                 }
             } catch (IOException e) {
@@ -255,10 +258,22 @@ public class ChatClient extends Application {
     }
 
     private void buildAndSendMessage(List users) {
-        Messages messages = null;
+        Messages messages;
         messages = new ChatRoom(users);
         try {
             objOut.writeObject(messages);
+            objOut.flush();
+        } catch (IOException e) {
+            IOUtils.closeQuietly(socket);
+
+            throw new ChatUncheckedException("Error sending components", e);
+        }
+    }
+
+    private void buildAndSendMessage(int idChatRoom, String login){
+        ShowHistory showHistory = new ShowHistory(idChatRoom, login);
+        try {
+            objOut.writeObject(showHistory);
             objOut.flush();
         } catch (IOException e) {
             IOUtils.closeQuietly(socket);

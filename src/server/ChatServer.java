@@ -37,25 +37,23 @@ public class ChatServer {
     private ChatServer(int port) {
         chat = new ChatRoom();
         this.port = port;
-        int test = 0;
+        int max = 0;
         try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb",
                 "admin", "1qaz2wsx")) {
             PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT id_room FROM chatrooms");
             try (ResultSet rs = prepared.executeQuery()) {
                 if (rs.next()) {
-                    while (rs.next()){
-                        test = rs.getInt("id_room");
-                        if (test > incId){
-                            incId = test;
+                    while (rs.next()) {
+                        max = rs.getInt("id_room");
+                        if (max > incId) {
+                            incId = max;
                         }
                     }
                 } else incId = 0;
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     private void start() throws IOException {
@@ -290,6 +288,18 @@ public class ChatServer {
                             messageQueue.add(chatRoom);
                             System.out.printf("[%s] Created ChatRoom with %s ID: %d\n", FORMAT.format(System.currentTimeMillis()), Arrays.toString(chatRoom.getUsers().toArray()), chatRoom.getId());
 
+                        } else if (messages instanceof ShowHistory) {
+                            ShowHistory msg = (ShowHistory) messages;
+                            StringBuilder stringBuilder = new StringBuilder();
+                            PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT TEXT FROM HISTORY WHERE ID_ROOM=?");
+                            prepared.setInt(1, msg.getIdChatRoom());
+                            try (ResultSet rs = prepared.executeQuery()) {
+                                while (rs.next()) {
+                                    stringBuilder.append(rs.getString("text"));
+                                }
+                            }
+                            msg.setText(stringBuilder);
+                            messageQueue.add(messages);
                         } else if (messages instanceof TextMessage) {
                             messageQueue.add(messages);
                             printMessage((TextMessage) messages);
@@ -339,9 +349,7 @@ public class ChatServer {
                                 IOUtils.closeQuietly(connection.socket);
                             }
                         }
-                    }
-
-                    if (msg instanceof Status) {
+                    } else if (msg instanceof Status) {
                         Status msgOut = (Status) msg;
 
                         String login = msgOut.getLogin();
@@ -359,6 +367,8 @@ public class ChatServer {
 
                     } else if (msg instanceof TextMessage) {
                         TextMessage msgOut = (TextMessage) msg;
+                        History.saveMessageInFile(msgOut);
+                        History.saveMessageInDB(msgOut);
 
                         for (ChatRoom list : chatRoomList) {
                             if (msgOut.getId() == list.getId()) {
@@ -366,8 +376,6 @@ public class ChatServer {
                                 for (Object login : users) {
                                     Connection connection = userConnection.get(login);
                                     try {
-                                        History.saveMessageInFile(msgOut);
-
                                         connection.objOut.writeObject(msgOut);
                                         connection.objOut.flush();
                                     } catch (IOException e) {
@@ -378,10 +386,25 @@ public class ChatServer {
                                 }
                             }
                         }
+                    } else if (msg instanceof ShowHistory) {
+                        ShowHistory msgOut = (ShowHistory) msg;
+                        String login = msgOut.getLogin();
+                        Connection connection = userConnection.get(login);
+                        try {
+                            connection.objOut.writeObject(msgOut);
+                            connection.objOut.flush();
+                        } catch (IOException e) {
+                            System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+                            userConnection.remove(login);
+                            IOUtils.closeQuietly(connection.socket);
+                        }
+
                     }
                 }
             } catch (InterruptedException e) {
                 throw new ChatUncheckedException("Writer was interrupted", e);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
