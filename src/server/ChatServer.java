@@ -65,8 +65,6 @@ public class ChatServer {
                             }
                             ChatRoom chatRoom = new ChatRoom(users);
                             chatRoom.setId(i);
-                            System.out.println(Arrays.toString(chatRoom.getUsers().toArray()));
-                            System.out.println(chatRoom.getId());
                             chatRoomList.add(i, chatRoom);
                         }
                     }
