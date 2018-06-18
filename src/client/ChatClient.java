@@ -144,7 +144,8 @@ public class ChatClient extends Application {
         System.out.print("All Commands:\n// - Show all commands\n" +
                 "//newroom - Crate new chatroom\n//exit - Exit\n" +
                 "//switchroom - Switch chat room(all users ID: 0)\n" +
-                "//allroom - Show all chat room\n//sendfile - Send file (path)\n");
+                "//allroom - Show all chat room\n//sendfile - Send file (path)\n" +
+                "//showhistory - Show history chat room\n");
     }
 
     private void authentication() throws InterruptedException {
@@ -235,7 +236,7 @@ public class ChatClient extends Application {
                     } else if (messages instanceof TextMessage) {
                         if (((TextMessage) messages).getId() == idChatRoom)
                             printMessage((TextMessage) messages);
-                    } else if (messages instanceof ShowHistory){
+                    } else if (messages instanceof ShowHistory) {
                         System.out.println(((ShowHistory) messages).getText());
                     }
                 }
@@ -270,7 +271,7 @@ public class ChatClient extends Application {
         }
     }
 
-    private void buildAndSendMessage(int idChatRoom, String login){
+    private void buildAndSendMessage(int idChatRoom, String login) {
         ShowHistory showHistory = new ShowHistory(idChatRoom, login);
         try {
             objOut.writeObject(showHistory);
@@ -287,9 +288,7 @@ public class ChatClient extends Application {
 
         if (clientState == ClientState.REGISTRATION) {
             messages = new Registration(msg);
-        }
-
-        if (clientState == ClientState.LOGGED_IN) {
+        } else if (clientState == ClientState.LOGGED_IN) {
             messages = new TextMessage(idChatRoom, System.currentTimeMillis(), name, msg);
         } else if (clientState == ClientState.CONNECTED) {
             messages = new Authentication(msg);
@@ -311,8 +310,6 @@ public class ChatClient extends Application {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        //launch(args);
-        //ChatServer.main(8080);
         String address = null;
 
         if (args != null && args.length > 0)

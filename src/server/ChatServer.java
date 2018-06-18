@@ -36,8 +36,12 @@ public class ChatServer {
 
     private ChatServer(int port) {
         chat = new ChatRoom();
+        chatRoomList.add(0, chat);
         this.port = port;
-        int max = 0;
+    }
+
+    private void getChatRooms() {
+        int max;
         try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb",
                 "admin", "1qaz2wsx")) {
             PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT id_room FROM chatrooms");
@@ -49,6 +53,23 @@ public class ChatServer {
                             incId = max;
                         }
                     }
+                    int i;
+                    for (i = 1; i <= incId; i++) {
+                        prepared = JDBCConnection.prepareStatement("SELECT * FROM chatrooms where id_room=?");
+                        prepared.setInt(1, i);
+                        List<String> users = new ArrayList<>();
+                        try (ResultSet rs1 = prepared.executeQuery()) {
+                            while (rs1.next()) {
+                                String login = rs1.getString("login");
+                                users.add(login);
+                            }
+                            ChatRoom chatRoom = new ChatRoom(users);
+                            chatRoom.setId(i);
+                            System.out.println(Arrays.toString(chatRoom.getUsers().toArray()));
+                            System.out.println(chatRoom.getId());
+                            chatRoomList.add(i, chatRoom);
+                        }
+                    }
                 } else incId = 0;
             }
         } catch (SQLException e) {
@@ -57,7 +78,7 @@ public class ChatServer {
     }
 
     private void start() throws IOException {
-
+        getChatRooms();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server started on " + serverSocket);
             new Thread(new Writer()).start();
@@ -316,7 +337,6 @@ public class ChatServer {
             } finally {       // выполнится в любом случае
 
                 if (login != null && userConnection.containsKey(login))
-//                    chat.getUsers().remove(login);
                     userConnection.remove(login);   // удаляет пользователя из Map
                 IOUtils.closeQuietly(con.socket);
             }
@@ -367,7 +387,7 @@ public class ChatServer {
 
                     } else if (msg instanceof TextMessage) {
                         TextMessage msgOut = (TextMessage) msg;
-                        History.saveMessageInFile(msgOut);
+                        //History.saveMessageInFile(msgOut);
                         History.saveMessageInDB(msgOut);
 
                         for (ChatRoom list : chatRoomList) {
@@ -398,14 +418,13 @@ public class ChatServer {
                             userConnection.remove(login);
                             IOUtils.closeQuietly(connection.socket);
                         }
-
                     }
                 }
             } catch (InterruptedException e) {
                 throw new ChatUncheckedException("Writer was interrupted", e);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            } //catch (IOException e) {
+                //e.printStackTrace();
+            //}
         }
     }
 
