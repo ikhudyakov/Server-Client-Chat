@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -137,7 +138,10 @@ public class ChatClient extends Application {
     }
 
     private void sendFile(String path) {
-
+        File file = new File(path);
+        if(file.exists()){
+            buildAndSendMessage(file);
+        }else System.out.println("Error path");
     }
 
     private void showAllCommands() {
@@ -238,6 +242,14 @@ public class ChatClient extends Application {
                             printMessage((TextMessage) messages);
                     } else if (messages instanceof ShowHistory) {
                         System.out.println(((ShowHistory) messages).getText());
+                    } else if (messages instanceof FileMessage) {
+                        FileMessage fileMessage = (FileMessage) messages;
+                        File file = fileMessage.getFile();
+                        File file1 = new File("\\" + file.getName());
+                        Files.copy(file.toPath(), file1.toPath());
+                        //file.renameTo(new File("C:\\Users\\ily-k\\Desktop\\test\\" + file.getName()));
+                        System.out.println("you have received the file " + file.getName());
+                        //file.delete();
                     }
                 }
             } catch (IOException e) {
@@ -283,6 +295,18 @@ public class ChatClient extends Application {
         }
     }
 
+    private void buildAndSendMessage(File file) {
+        Messages messages = new FileMessage(idChatRoom, System.currentTimeMillis(), name, file);
+        try {
+            objOut.writeObject(messages);
+            objOut.flush();
+        } catch (IOException e) {
+            IOUtils.closeQuietly(socket);
+
+            throw new ChatUncheckedException("Error sending components", e);
+        }
+    }
+
     private void buildAndSendMessage(String msg) {
         Messages messages = null;
 
@@ -311,12 +335,7 @@ public class ChatClient extends Application {
     public static void main(String[] args) throws IOException, InterruptedException {
 
         //launch(args);
-        //ChatServer.main(8080);
-        //start1(args);
-        //return;
-//    }
-//
-//    private static void start1(String[] args) throws IOException, InterruptedException {
+
         String address = null;
 
         if (args != null && args.length > 0)

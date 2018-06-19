@@ -5,6 +5,7 @@ import messages.*;
 import components.Connection;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -318,7 +319,13 @@ public class ChatServer {
                                 }
                             }
                             msg.setText(stringBuilder);
-                            messageQueue.add(messages);
+                            messageQueue.add(msg);
+                        } else if (messages instanceof FileMessage) {
+                            FileMessage fmsg = (FileMessage) messages;
+                            //File file = fmsg.getFile();
+                            //file.renameTo(new File("files\\" + file.getName()));
+                            messageQueue.add(fmsg);
+
                         } else if (messages instanceof TextMessage) {
                             messageQueue.add(messages);
                             printMessage((TextMessage) messages);
@@ -404,6 +411,25 @@ public class ChatServer {
                                 }
                             }
                         }
+                    } else if (msg instanceof FileMessage) {
+                        FileMessage fmsgOut = (FileMessage) msg;
+
+                        for (ChatRoom list : chatRoomList) {
+                            if (fmsgOut.getId() == list.getId()) {
+                                List users = list.getUsers();
+                                for (Object login : users) {
+                                    Connection connection = userConnection.get(login);
+                                    try {
+                                        connection.objOut.writeObject(fmsgOut);
+                                        connection.objOut.flush();
+                                    } catch (IOException e) {
+                                        System.err.printf("Error sending components %s to %s\n", msg, connection.socket);
+                                        userConnection.remove(login);
+                                        IOUtils.closeQuietly(connection.socket);
+                                    }
+                                }
+                            }
+                        }
                     } else if (msg instanceof ShowHistory) {
                         ShowHistory msgOut = (ShowHistory) msg;
                         String login = msgOut.getLogin();
@@ -421,7 +447,7 @@ public class ChatServer {
             } catch (InterruptedException e) {
                 throw new ChatUncheckedException("Writer was interrupted", e);
             } //catch (IOException e) {
-                //e.printStackTrace();
+            //e.printStackTrace();
             //}
         }
     }
