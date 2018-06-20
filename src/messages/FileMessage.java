@@ -1,20 +1,20 @@
 package messages;
 
+import java.io.File;
 import java.io.Serializable;
 
-
-public class TextMessage implements Messages, Serializable {
+public class FileMessage implements Messages, Serializable {
 
     private long timestamp;
     private String sender;
-    private String text;
+    private File file;
     private int id;
 
-    public TextMessage(int id, long timestamp, String sender, String text) {
+    public FileMessage(int id, long timestamp, String sender, File file) {
         this.id = id;
         this.timestamp = timestamp;
         this.sender = sender;
-        this.text = text;
+        this.file = file;
     }
 
     public long getTimestamp() {
@@ -25,12 +25,12 @@ public class TextMessage implements Messages, Serializable {
         this.timestamp = timestamp;
     }
 
-    public String getText() {
-        return text;
+    public File getFile() {
+        return file;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setFile(String text) {
+        this.file = file;
     }
 
     public int getId() {
@@ -43,14 +43,5 @@ public class TextMessage implements Messages, Serializable {
 
     public void setSender(String sender) {
         this.sender = sender;
-    }
-
-    @Override
-    public String toString() {
-        return "components.Message{" +
-                "timestamp=" + timestamp +
-                ", sender='" + sender + '\'' +
-                ", text='" + text + '\'' +
-                '}';
     }
 }
