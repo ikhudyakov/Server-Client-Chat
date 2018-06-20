@@ -310,14 +310,14 @@ public class ChatClient extends Application {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        //launch(args);
+        launch(args);
         //ChatServer.main(8080);
         //start1(args);
         //return;
 //    }
 //
 //    private static void start1(String[] args) throws IOException, InterruptedException {
-        String address = null;
+/*        String address = null;
 
         if (args != null && args.length > 0)
             address = args[0];
@@ -330,6 +330,6 @@ public class ChatClient extends Application {
         }
 
         ChatClient client = new ChatClient(parseAddress(address), scanner);
-        client.start();
+        client.start();*/
     }
 }
