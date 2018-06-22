@@ -1,11 +1,7 @@
 package client;
 
 import components.*;
-import javafx.application.Application;
 import messages.*;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.*;
-import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.*;
@@ -14,15 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class ChatClient extends Application {
-
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        primaryStage.setTitle("ChatTick");
-        primaryStage.setScene(new Scene(root, 600, 400));
-        primaryStage.show();
-    }
+public class ChatClient {
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");    // формат времени
     private SocketAddress serverAddress;    // канал связи
@@ -42,13 +30,13 @@ public class ChatClient extends Application {
 
     private ClientState clientState;
 
-    private ChatClient(SocketAddress serverAddress, Scanner scanner) {
+    public ChatClient(SocketAddress serverAddress, Scanner scanner) {
         this.serverAddress = serverAddress;
         this.scanner = scanner;
         allId = new ArrayList<>();
     }
 
-    private void start() throws IOException, InterruptedException {
+    public void start() throws IOException, InterruptedException {
 
         openConnection();
 
@@ -160,7 +148,9 @@ public class ChatClient extends Application {
             if (clientState == ClientState.LOGGED_IN)
                 break;
             System.out.println("Enter LOGIN");
+        //    name = scanner.nextLine().trim().toLowerCase();
             name = scanner.nextLine().trim().toLowerCase();
+
             while (name.equals("")) {
                 name = scanner.nextLine().trim().toLowerCase();
             }
@@ -327,33 +317,9 @@ public class ChatClient extends Application {
         }
     }
 
-    private static SocketAddress parseAddress(String addr) {
+    public static SocketAddress parseAddress(String addr) {
         String[] split = addr.split(":");
         return new InetSocketAddress(split[0], Integer.parseInt(split[1]));
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-
-        //launch(args);
-        //ChatServer.main(8080);
-        //start1(args);
-        //return;
-//    }
-//
-//    private static void start1(String[] args) throws IOException, InterruptedException {
-        String address = null;
-
-        if (args != null && args.length > 0)
-            address = args[0];
-
-        Scanner scanner = new Scanner(System.in);
-
-        if (address == null) {
-            System.out.println("Enter server address");
-            address = scanner.nextLine();
-        }
-
-        ChatClient client = new ChatClient(parseAddress(address), scanner);
-        client.start();
-    }
 }
