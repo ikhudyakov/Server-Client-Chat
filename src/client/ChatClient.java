@@ -1,7 +1,11 @@
 package client;
 
 import components.*;
+import javafx.application.Application;
 import messages.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.*;
+import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.*;
@@ -10,7 +14,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class ChatClient {
+public class ChatClient extends Application {
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+        primaryStage.setTitle("ChatTick");
+        primaryStage.setScene(new Scene(root, 600, 400));
+        primaryStage.show();
+    }
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");    // формат времени
     private SocketAddress serverAddress;    // канал связи
@@ -107,7 +119,6 @@ public class ChatClient {
                 msg = scanner.nextLine();
                 if (allId.contains(Integer.parseInt(msg))) {
                     idChatRoom = Integer.parseInt(msg);
-                    buildAndSendMessage(idChatRoom, name);
                 } else {
                     System.out.println("Error room ID");
                 }
@@ -230,9 +241,7 @@ public class ChatClient {
                         if (((TextMessage) messages).getId() == idChatRoom)
                             printMessage((TextMessage) messages);
                     } else if (messages instanceof ShowHistory) {
-                        for(String text : ((ShowHistory) messages).getText()){
-                            System.out.println(text);
-                        }
+                        System.out.println(((ShowHistory) messages).getText());
                     } else if (messages instanceof FileMessage) {
                         FileMessage fileMessage = (FileMessage) messages;
                         File file = fileMessage.getFile();
@@ -287,13 +296,7 @@ public class ChatClient {
     }
 
     private void buildAndSendMessage(File file) {
-        try {
-            FileOutputStream fos = new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
         Messages messages = new FileMessage(idChatRoom, System.currentTimeMillis(), name, file);
-
         try {
             objOut.writeObject(messages);
             objOut.flush();
@@ -304,7 +307,7 @@ public class ChatClient {
         }
     }
 
-    public void buildAndSendMessage(String msg) {
+    private void buildAndSendMessage(String msg) {
         Messages messages = null;
 
         if (clientState == ClientState.REGISTRATION) {
