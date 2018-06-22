@@ -41,7 +41,7 @@ public class ChatServer {
     private void getChatRooms() {
         int max;
         try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb",
-                "admin", "1qaz2wsx")) {
+               "admin", "1qaz2wsx")) {
             PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT id_room FROM chatrooms");
             try (ResultSet rs = prepared.executeQuery()) {
                 if (rs.next()) {
