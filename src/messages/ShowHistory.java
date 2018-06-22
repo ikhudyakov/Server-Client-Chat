@@ -1,10 +1,12 @@
 package messages;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class ShowHistory implements Messages, Serializable {
     private int idChatRoom;
-    private StringBuilder text;
+    //private StringBuilder text;
+    private List<String> text;
     private String login;
 
     public ShowHistory(int idChatRoom, String login){
@@ -12,7 +14,7 @@ public class ShowHistory implements Messages, Serializable {
         this.login = login;
     }
 
-    public ShowHistory(int idChatRoom, String login, StringBuilder text){
+    public ShowHistory(int idChatRoom, String login, List<String> text){
         this.idChatRoom = idChatRoom;
         this.text = text;
         this.login = login;
@@ -22,7 +24,7 @@ public class ShowHistory implements Messages, Serializable {
         return idChatRoom;
     }
 
-    public StringBuilder getText() {
+    public List<String> getText() {
         return text;
     }
 
@@ -30,7 +32,7 @@ public class ShowHistory implements Messages, Serializable {
         return login;
     }
 
-    public void setText(StringBuilder text) {
+    public void setText(List<String> text) {
         this.text = text;
     }
 }

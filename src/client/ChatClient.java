@@ -119,6 +119,7 @@ public class ChatClient extends Application {
                 msg = scanner.nextLine();
                 if (allId.contains(Integer.parseInt(msg))) {
                     idChatRoom = Integer.parseInt(msg);
+                    buildAndSendMessage(idChatRoom, name);
                 } else {
                     System.out.println("Error room ID");
                 }
@@ -241,7 +242,9 @@ public class ChatClient extends Application {
                         if (((TextMessage) messages).getId() == idChatRoom)
                             printMessage((TextMessage) messages);
                     } else if (messages instanceof ShowHistory) {
-                        System.out.println(((ShowHistory) messages).getText());
+                        for(String text : ((ShowHistory) messages).getText()){
+                            System.out.println(text);
+                        }
                     } else if (messages instanceof FileMessage) {
                         FileMessage fileMessage = (FileMessage) messages;
                         File file = fileMessage.getFile();
@@ -296,7 +299,13 @@ public class ChatClient extends Application {
     }
 
     private void buildAndSendMessage(File file) {
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         Messages messages = new FileMessage(idChatRoom, System.currentTimeMillis(), name, file);
+
         try {
             objOut.writeObject(messages);
             objOut.flush();
@@ -334,7 +343,7 @@ public class ChatClient extends Application {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        //launch(args);
+//        launch(args);
 
         String address = null;
 

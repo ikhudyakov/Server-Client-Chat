@@ -5,10 +5,7 @@ import messages.*;
 import components.Connection;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.*;
@@ -112,13 +109,24 @@ public class ChatServer {
 
         @Override
         public void run() {
-            ObjectInputStream objIn;
+            ObjectInputStream objIn = null;
+            BufferedInputStream bis = null;
             Status status = null;
             String login = null;
             String password;
 
+
+            //TODO while
             try {
-                objIn = new ObjectInputStream(con.socket.getInputStream());
+                while (true) {
+                    if ((con.socket.getInputStream()) instanceof ObjectInputStream) {
+                        objIn = new ObjectInputStream(con.socket.getInputStream());
+                        break;
+                    } else if ((con.socket.getInputStream()) instanceof FileInputStream) {
+                        bis = new BufferedInputStream(con.socket.getInputStream());
+                        break;
+                    }
+                }
                 System.out.printf("[%s] connected %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
 
                 Class.forName("org.postgresql.Driver");
@@ -314,11 +322,17 @@ public class ChatServer {
                             PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT TEXT FROM HISTORY WHERE ID_ROOM=?");
                             prepared.setInt(1, msg.getIdChatRoom());
                             try (ResultSet rs = prepared.executeQuery()) {
+                                List<String> his = new ArrayList<>();
                                 while (rs.next()) {
-                                    stringBuilder.append(rs.getString("text"));
+                                    his.add(rs.getString("text"));
+                                }
+                                if (his.size() >= 15) {
+                                    for (int i = 0; i < (his.size() - 15); i++) {
+                                        his.remove(i);
+                                    }
+                                    msg.setText(his);
                                 }
                             }
-                            msg.setText(stringBuilder);
                             messageQueue.add(msg);
                         } else if (messages instanceof FileMessage) {
                             FileMessage fmsg = (FileMessage) messages;
