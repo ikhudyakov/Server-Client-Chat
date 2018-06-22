@@ -297,7 +297,7 @@ public class ChatClient {
         }
     }
 
-    private void buildAndSendMessage(String msg) {
+    public void buildAndSendMessage(String msg) {
         Messages messages = null;
 
         if (clientState == ClientState.REGISTRATION) {
