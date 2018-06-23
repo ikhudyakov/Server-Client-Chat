@@ -1,5 +1,6 @@
 package client.controllers;
 
+import client.ChatClient;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -40,29 +41,33 @@ public class Controller {
     @FXML
     void initialize() {
         enterButton.setOnAction(event -> {
-            String login = login_field.getText();
-            String password = password_field.getText();
-            String msg = login + password;
-            //client.ChatClient.buildAndSendMessage(msg);
-            System.out.println("Вы нажали кнопку Enter " + msg);
+            String login = login_field.getText().trim();
+            String password = password_field.getText().trim();
 
-            enterButton.getScene().getWindow().hide();
+            if (!login.equals("") && !password.equals("")){
+                String msg = login + " " + password;
+                //ChatClient.buildAndSendMessage(msg);
+                System.out.println("Вы нажали кнопку Enter " + msg);
 
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/chat.fxml"));
+                if(true) {// условие успешной авторизации, после проверки которой происходит переход в окно главного чата
+                    enterButton.getScene().getWindow().hide();
 
-            try {
-                loader.load();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                    FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(getClass().getResource("/chat.fxml"));
 
-            Parent root = loader.getRoot();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.showAndWait();
+                    try {
+                        loader.load();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-
+                    Parent root = loader.getRoot();
+                    Stage stage = new Stage();
+                    stage.setScene(new Scene(root));
+                    stage.showAndWait();
+                }
+            } else
+                System.out.println("Login or password is empty");
         });
 
         registrationButon.setOnAction(event -> {

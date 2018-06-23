@@ -14,15 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class ChatClient extends Application {
-
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        primaryStage.setTitle("ChatTick");
-        primaryStage.setScene(new Scene(root, 600, 400));
-        primaryStage.show();
-    }
+public class ChatClient {
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");    // формат времени
     private SocketAddress serverAddress;    // канал связи
@@ -37,7 +29,7 @@ public class ChatClient extends Application {
     enum ClientState {
         CONNECTED,
         LOGGED_IN,
-        REGISTRATION
+        REGISTRED
     }
 
     private ClientState clientState;
@@ -75,7 +67,7 @@ public class ChatClient extends Application {
     }
 
     private void registration() throws InterruptedException {
-        clientState = ClientState.REGISTRATION;
+        clientState = ClientState.REGISTRED;
         System.out.println("registration");
         while (true) {
             Thread.sleep(1000);
@@ -310,7 +302,7 @@ public class ChatClient extends Application {
     private void buildAndSendMessage(String msg) {
         Messages messages = null;
 
-        if (clientState == ClientState.REGISTRATION) {
+        if (clientState == ClientState.REGISTRED) {
             messages = new Registration(msg);
         } else if (clientState == ClientState.LOGGED_IN) {
             messages = new TextMessage(idChatRoom, System.currentTimeMillis(), name, msg);

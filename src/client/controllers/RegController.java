@@ -1,3 +1,5 @@
+package client.controllers;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
@@ -22,6 +24,8 @@ public class RegController {
 
     @FXML
     private Button enterButton;
+
+
 
     @FXML
     private PasswordField repeat_password_field;

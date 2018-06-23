@@ -4,7 +4,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 
 public class ChatController {
 
@@ -18,16 +20,20 @@ public class ChatController {
     private TextField text_field;
 
     @FXML
+    private ImageView immageButtonAttachFile;
+
+    @FXML
+    private ListView<?> messagesList;
+
+    @FXML
     private Button sendButton;
 
     @FXML
-    private Button attachButton;
+    private ListView<?> onlineUsers;
 
     @FXML
     void initialize() {
-        assert text_field != null : "fx:id=\"text_field\" was not injected: check your FXML file 'chat.fxml'.";
-        assert sendButton != null : "fx:id=\"sendButton\" was not injected: check your FXML file 'chat.fxml'.";
-        assert attachButton != null : "fx:id=\"attachButton\" was not injected: check your FXML file 'chat.fxml'.";
 
     }
 }
+

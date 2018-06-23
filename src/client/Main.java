@@ -30,10 +30,10 @@ public class Main extends Application {
 
         Scanner scanner = new Scanner(System.in);
 
-        if (address == null) {
-            System.out.println("Enter server address");
-            address = scanner.nextLine();
-        }
+//        if (address == null) {
+//            //System.out.println("Enter server address");
+//            address = scanner.nextLine();
+//        }
 
         ChatClient client = new ChatClient(parseAddress(address), scanner);
         client.start();
