@@ -1,6 +1,5 @@
 package client.controllers;
 
-import client.ChatClient;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -27,22 +26,22 @@ public class Controller {
     private URL location;
 
     @FXML
-    private TextField login_field;
+    public TextField login_field;
 
     @FXML
-    private PasswordField password_field;
+    public PasswordField password_field;
 
     @FXML
-    private Button enterButton;
+    public Button enterButton;
 
     @FXML
-    private Button registrationButon;
+    private Button registrationButton;
 
     @FXML
-    void initialize() {
+    public void initialize() {
         enterButton.setOnAction(event -> {
-            String login = login_field.getText().trim();
-            String password = password_field.getText().trim();
+            String login = login_field.getText().toLowerCase().trim();
+            String password = password_field.getText().toLowerCase().trim();
 
             if (!login.equals("") && !password.equals("")){
                 String msg = login + " " + password;
@@ -70,8 +69,8 @@ public class Controller {
                 System.out.println("Login or password is empty");
         });
 
-        registrationButon.setOnAction(event -> {
-            registrationButon.getScene().getWindow().hide();
+        registrationButton.setOnAction(event -> {
+            registrationButton.getScene().getWindow().hide();
 
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/registration.fxml"));

@@ -42,7 +42,7 @@
             <Font name="Brush Script MT Italic" size="56.0" />
          </font>
       </Label>
-      <Button fx:id="registrationButon" layoutX="475.0" layoutY="33.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="111.0" style="-fx-background-color: #f39c63;" text="Registration" textAlignment="CENTER" textFill="WHITE">
+      <Button fx:id="registrationButton" layoutX="475.0" layoutY="33.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="111.0" style="-fx-background-color: #f39c63;" text="Registration" textAlignment="CENTER" textFill="WHITE">
          <font>
             <Font name="BrushScriptStd" size="18.0" />
          </font>

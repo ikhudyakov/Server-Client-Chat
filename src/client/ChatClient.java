@@ -1,16 +1,111 @@
 package client;
 
+import client.controllers.Controller;
 import components.*;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import messages.*;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
+
 
 public class ChatClient {
+
+
+
+
+    @FXML
+    private ResourceBundle resources;
+
+    @FXML
+    private URL location;
+
+    @FXML
+    private TextField login_field;
+
+    @FXML
+    private PasswordField password_field;
+
+    @FXML
+    private Button enterButton;
+
+    @FXML
+    private Button registrationButton;
+
+    @FXML
+    void initialize() {
+        enterButton.setOnAction(event -> {
+            String login = login_field.getText().toLowerCase().trim();
+            String password = password_field.getText().toLowerCase().trim();
+
+            if (!login.equals("") && !password.equals("")){
+                String msg = login + " " + password;
+                buildAndSendMessage(msg);
+                System.out.println("Вы нажали кнопку Enter " + msg);
+
+                if(true) {// условие успешной авторизации, после проверки которой происходит переход в окно главного чата
+                    enterButton.getScene().getWindow().hide();
+
+                    FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(getClass().getResource("/chat.fxml"));
+
+                    try {
+                        loader.load();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Parent root = loader.getRoot();
+                    Stage stage = new Stage();
+                    stage.setScene(new Scene(root));
+                    stage.showAndWait();
+                }
+            } else
+                System.out.println("Login or password is empty");
+        });
+
+        registrationButton.setOnAction(event -> {
+            registrationButton.getScene().getWindow().hide();
+
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/registration.fxml"));
+
+            try {
+                loader.load();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            Parent root = loader.getRoot();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+        });
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
+    }
+
+
+
+
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");    // формат времени
     private SocketAddress serverAddress;    // канал связи
@@ -21,6 +116,8 @@ public class ChatClient {
     private int idChatRoom = 0;
     private List<Integer> allId;
     private String msg;
+    private boolean checkAuth = false;
+    Controller controller;
 
     enum ClientState {
         CONNECTED,
@@ -42,19 +139,59 @@ public class ChatClient {
 
         Thread reader = new Thread(new Reader(socket));
         reader.start();
+        enterButton.setOnAction(event -> {
 
-        System.out.println("1 - sign up\n2 - log in");
-        while (true) {
-            msg = scanner.nextLine();
-            if (msg.equals("1")) {
-                registration();
-                authentication();
-                break;
-            } else if (msg.equals("2")) {
-                authentication();
-                break;
-            } else System.out.println("error");
-        }
+                    String msg;
+                    System.out.println("authentication");
+                    while (true) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        if (clientState == ClientState.LOGGED_IN)
+                            break;
+                        //System.out.println("Enter LOGIN");
+                        //name = scanner.nextLine().trim().toLowerCase();
+
+                        String login = login_field.getText().toLowerCase().trim();
+                        String password = password_field.getText().toLowerCase().trim();
+                        if (!login.equals("") && !password.equals("")) {
+                            msg = login + " " + password;
+                            buildAndSendMessage(msg);
+                        }
+                    }
+                    if (clientState == ClientState.LOGGED_IN){
+                        enterButton.getScene().getWindow().hide();
+
+                        FXMLLoader loader = new FXMLLoader();
+                        loader.setLocation(getClass().getResource("/chat.fxml"));
+
+                        try {
+                            loader.load();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        Parent root = loader.getRoot();
+                        Stage stage = new Stage();
+                        stage.setScene(new Scene(root));
+                        stage.showAndWait();
+                    }
+                }
+            );
+//        System.out.println("1 - sign up\n2 - log in");
+//        while (true) {
+//            msg = scanner.nextLine();
+//            if (msg.equals("1")) {
+//                registration();
+//                authentication();
+//                break;
+//            } else if (msg.equals("2")) {
+//                authentication();
+//                break;
+//            } else System.out.println("error");
+//        }
         showAllCommands();
         System.out.println("Enter message to send: ");
         textScanner();
@@ -204,6 +341,7 @@ public class ChatClient {
                                 allId = status.getAllId();
                                 allId.add(0);
                                 clientState = ClientState.LOGGED_IN;
+                                checkAuth = true;
                                 break;
                             case 2:
                                 System.out.println("incorrect login");
@@ -327,4 +465,7 @@ public class ChatClient {
         return new InetSocketAddress(split[0], Integer.parseInt(split[1]));
     }
 
+
 }
+
+
