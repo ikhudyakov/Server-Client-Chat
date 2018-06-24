@@ -75,7 +75,7 @@ public class ChatClient {
 //        textScanner();
     }
 
-    private void registration() throws InterruptedException {
+    public void registration(String msg) throws InterruptedException {
         clientState = ClientState.REGISTERED;
         System.out.println("registration");
         while (true) {
@@ -157,10 +157,10 @@ public class ChatClient {
     public void authentication(String msg) throws InterruptedException {
         //String msg;
         System.out.println("authentication");
-        while (true) {
-            Thread.sleep(1000);
-            if (clientState == ClientState.LOGGED_IN)
-                break;
+        //while (true) {
+        //Thread.sleep(1000);
+        if (clientState == ClientState.CONNECTED)
+            //break;
 //            System.out.println("Enter LOGIN");
 //            name = scanner.nextLine().trim().toLowerCase();
 //            while (name.equals("")) {
@@ -173,8 +173,8 @@ public class ChatClient {
 //                pass = scanner.nextLine().trim().toLowerCase();
 //            }
 //            msg += " " + pass;
-            buildAndSendMessage(msg);
-        }
+        buildAndSendMessage(msg);
+        //}
     }
 
 
@@ -215,11 +215,11 @@ public class ChatClient {
                         }
                         switch (status.getStatusCode()) {
                             case 1:
+                                checkAuth = true;
                                 System.out.println("Success");
                                 allId = status.getAllId();
                                 allId.add(0);
                                 clientState = ClientState.LOGGED_IN;
-                                checkAuth = true;
                                 break;
                             case 2:
                                 System.out.println("incorrect login");

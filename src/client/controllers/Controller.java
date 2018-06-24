@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -35,10 +36,19 @@ public class Controller {
     public PasswordField password_field;
 
     @FXML
+    public PasswordField repeat_password_field;
+
+    @FXML
     public Button enterButton;
 
     @FXML
+    public Button enterButton1;
+
+    @FXML
     public Button registrationButton;
+
+    @FXML
+    public Label error_label;
 
     @FXML
     public void initialize() throws IOException, InterruptedException {
@@ -47,38 +57,45 @@ public class Controller {
         chatClient.start();
 
         enterButton.setOnAction(event -> {
+
             String login = login_field.getText().toLowerCase().trim();
             String password = password_field.getText().toLowerCase().trim();
 
-            if (!login.equals("") && !password.equals("")){
+
+            if (!login.equals("") && !password.equals("")) {
                 String msg = login + " " + password;
-                //ChatClient.buildAndSendMessage(msg);
-                System.out.println("Вы нажали кнопку Enter " + msg);
                 try {
                     chatClient.authentication(msg);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+            } else error_label.setText("ERROR");
 
-                if(chatClient.checkAuth) {// условие успешной авторизации, после проверки которой происходит переход в окно главного чата
-                    enterButton.getScene().getWindow().hide();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
-                    FXMLLoader loader = new FXMLLoader();
-                    loader.setLocation(getClass().getResource("/chat.fxml"));
+            if (chatClient.checkAuth) {
+                enterButton.getScene().getWindow().hide();
 
-                    try {
-                        loader.load();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
 
-                    Parent root = loader.getRoot();
-                    Stage stage = new Stage();
-                    stage.setScene(new Scene(root));
-                    stage.showAndWait();
+                FXMLLoader loader = new FXMLLoader();
+                loader.setLocation(getClass().getResource("/chat.fxml"));
+
+                try {
+                    loader.load();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } else
-                System.out.println("Login or password is empty");
+
+                Parent root = loader.getRoot();
+                Stage stage = new Stage();
+                stage.setScene(new Scene(root));
+                stage.showAndWait();
+
+            } else error_label.setText("ERROR");
         });
 
         registrationButton.setOnAction(event -> {
@@ -86,6 +103,7 @@ public class Controller {
 
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/registration.fxml"));
+
 
             try {
                 loader.load();
@@ -97,7 +115,25 @@ public class Controller {
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
             stage.showAndWait();
+
+            enterButton1.setOnAction(event1 -> {
+                String login = login_field.getText().toLowerCase().trim();
+                String password = password_field.getText().toLowerCase().trim();
+                String repeat_password = repeat_password_field.getText().toLowerCase().trim();
+                if (!login.equals("") && !password.equals("")) {
+                    if (password.equals(repeat_password)) {
+                        String msg = login + " " + password;
+                        try {
+                            chatClient.registration(msg);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else error_label.setText("Error");
+                } else error_label.setText("Error");
+            });
+
         });
+
 
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
