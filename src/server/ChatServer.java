@@ -118,15 +118,15 @@ public class ChatServer {
 
             //TODO while
             try {
-                while (true) {
-                    if ((con.socket.getInputStream()) instanceof ObjectInputStream) {
+//                while (true) {
+//                    if ((con.socket.getInputStream()) instanceof ObjectInputStream) {
                         objIn = new ObjectInputStream(con.socket.getInputStream());
-                        break;
-                    } else if ((con.socket.getInputStream()) instanceof FileInputStream) {
-                        bis = new BufferedInputStream(con.socket.getInputStream());
-                        break;
-                    }
-                }
+//                        break;
+//                    } else if ((con.socket.getInputStream()) instanceof FileInputStream) {
+//                        bis = new BufferedInputStream(con.socket.getInputStream());
+//                        break;
+//                    }
+//                }
                 System.out.printf("[%s] connected %s\n", FORMAT.format(System.currentTimeMillis()), con.socket.getInetAddress().getHostAddress());
 
                 Class.forName("org.postgresql.Driver");
@@ -318,7 +318,6 @@ public class ChatServer {
 
                         } else if (messages instanceof ShowHistory) {
                             ShowHistory msg = (ShowHistory) messages;
-                            StringBuilder stringBuilder = new StringBuilder();
                             PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT TEXT FROM HISTORY WHERE ID_ROOM=?");
                             prepared.setInt(1, msg.getIdChatRoom());
                             try (ResultSet rs = prepared.executeQuery()) {

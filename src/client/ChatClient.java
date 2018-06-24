@@ -1,11 +1,7 @@
 package client;
 
 import components.*;
-import javafx.application.Application;
 import messages.*;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.*;
-import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.*;
@@ -29,7 +25,7 @@ public class ChatClient {
     enum ClientState {
         CONNECTED,
         LOGGED_IN,
-        REGISTRED
+        REGISTERED
     }
 
     private ClientState clientState;
@@ -48,18 +44,16 @@ public class ChatClient {
         reader.start();
 
         System.out.println("1 - sign up\n2 - log in");
-        msg = scanner.nextLine();
-        switch (msg) {
-            case "1":
+        while (true) {
+            msg = scanner.nextLine();
+            if (msg.equals("1")) {
                 registration();
                 authentication();
                 break;
-            case "2":
+            } else if (msg.equals("2")) {
                 authentication();
                 break;
-            default:
-                System.out.println("error");
-                break;
+            } else System.out.println("error");
         }
         showAllCommands();
         System.out.println("Enter message to send: ");
@@ -67,7 +61,7 @@ public class ChatClient {
     }
 
     private void registration() throws InterruptedException {
-        clientState = ClientState.REGISTRED;
+        clientState = ClientState.REGISTERED;
         System.out.println("registration");
         while (true) {
             Thread.sleep(1000);
@@ -111,6 +105,7 @@ public class ChatClient {
                 msg = scanner.nextLine();
                 if (allId.contains(Integer.parseInt(msg))) {
                     idChatRoom = Integer.parseInt(msg);
+                    //buildAndSendMessage(idChatRoom, name);
                 } else {
                     System.out.println("Error room ID");
                 }
@@ -131,9 +126,9 @@ public class ChatClient {
 
     private void sendFile(String path) {
         File file = new File(path);
-        if(file.exists()){
+        if (file.exists()) {
             buildAndSendMessage(file);
-        }else System.out.println("Error path");
+        } else System.out.println("Error path");
     }
 
     private void showAllCommands() {
@@ -233,7 +228,9 @@ public class ChatClient {
                         if (((TextMessage) messages).getId() == idChatRoom)
                             printMessage((TextMessage) messages);
                     } else if (messages instanceof ShowHistory) {
-                        System.out.println(((ShowHistory) messages).getText());
+                        for (String text : ((ShowHistory) messages).getText()) {
+                            System.out.println(text);
+                        }
                     } else if (messages instanceof FileMessage) {
                         FileMessage fileMessage = (FileMessage) messages;
                         File file = fileMessage.getFile();
@@ -288,7 +285,13 @@ public class ChatClient {
     }
 
     private void buildAndSendMessage(File file) {
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         Messages messages = new FileMessage(idChatRoom, System.currentTimeMillis(), name, file);
+
         try {
             objOut.writeObject(messages);
             objOut.flush();
@@ -299,10 +302,10 @@ public class ChatClient {
         }
     }
 
-    private void buildAndSendMessage(String msg) {
+    public void buildAndSendMessage(String msg) {
         Messages messages = null;
 
-        if (clientState == ClientState.REGISTRED) {
+        if (clientState == ClientState.REGISTERED) {
             messages = new Registration(msg);
         } else if (clientState == ClientState.LOGGED_IN) {
             messages = new TextMessage(idChatRoom, System.currentTimeMillis(), name, msg);
