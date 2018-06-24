@@ -35,7 +35,7 @@ public class Main extends Application {
 //            address = scanner.nextLine();
 //        }
 
-        ChatClient client = new ChatClient(parseAddress(address), scanner);
-        client.start();
+        //ChatClient client = new ChatClient(parseAddress(address), scanner);
+        //client.start();
     }
 }

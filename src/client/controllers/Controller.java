@@ -1,5 +1,6 @@
 package client.controllers;
 
+import client.ChatClient;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,7 +15,9 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 
+import static client.ChatClient.parseAddress;
 import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 
 public class Controller {
@@ -38,7 +41,11 @@ public class Controller {
     public Button registrationButton;
 
     @FXML
-    public void initialize() {
+    public void initialize() throws IOException, InterruptedException {
+
+        ChatClient chatClient = new ChatClient(ChatClient.parseAddress("127.0.0.1:8081"), new Scanner(System.in));
+        chatClient.start();
+
         enterButton.setOnAction(event -> {
             String login = login_field.getText().toLowerCase().trim();
             String password = password_field.getText().toLowerCase().trim();
@@ -47,8 +54,13 @@ public class Controller {
                 String msg = login + " " + password;
                 //ChatClient.buildAndSendMessage(msg);
                 System.out.println("Вы нажали кнопку Enter " + msg);
+                try {
+                    chatClient.authentication(msg);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-                if(true) {// условие успешной авторизации, после проверки которой происходит переход в окно главного чата
+                if(chatClient.checkAuth) {// условие успешной авторизации, после проверки которой происходит переход в окно главного чата
                     enterButton.getScene().getWindow().hide();
 
                     FXMLLoader loader = new FXMLLoader();

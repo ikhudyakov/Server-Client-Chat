@@ -34,10 +34,10 @@ public class ChatClient {
     private int idChatRoom = 0;
     private List<Integer> allId;
     private String msg;
-    private boolean checkAuth = false;
+    public boolean checkAuth = false;
     Controller controller;
 
-    enum ClientState {
+    public enum ClientState {
         CONNECTED,
         LOGGED_IN,
         REGISTERED
@@ -58,21 +58,21 @@ public class ChatClient {
         Thread reader = new Thread(new Reader(socket));
         reader.start();
 
-        System.out.println("1 - sign up\n2 - log in");
-        while (true) {
-            msg = scanner.nextLine();
-            if (msg.equals("1")) {
-                registration();
-                authentication();
-                break;
-            } else if (msg.equals("2")) {
-                authentication();
-                break;
-            } else System.out.println("error");
-        }
-        showAllCommands();
-        System.out.println("Enter message to send: ");
-        textScanner();
+//        System.out.println("1 - sign up\n2 - log in");
+//        while (true) {
+//            msg = scanner.nextLine();
+//            if (msg.equals("1")) {
+//                registration();
+//                authentication();
+//                break;
+//            } else if (msg.equals("2")) {
+//                authentication();
+//                break;
+//            } else System.out.println("error");
+//        }
+//        showAllCommands();
+//        System.out.println("Enter message to send: ");
+//        textScanner();
     }
 
     private void registration() throws InterruptedException {
@@ -154,25 +154,25 @@ public class ChatClient {
                 "//showhistory - Show history chat room\n");
     }
 
-    private void authentication() throws InterruptedException {
-        String msg;
+    public void authentication(String msg) throws InterruptedException {
+        //String msg;
         System.out.println("authentication");
         while (true) {
             Thread.sleep(1000);
             if (clientState == ClientState.LOGGED_IN)
                 break;
-            System.out.println("Enter LOGIN");
-            name = scanner.nextLine().trim().toLowerCase();
-            while (name.equals("")) {
-                name = scanner.nextLine().trim().toLowerCase();
-            }
-            msg = name;
-            System.out.println("Enter PASSWORD");
-            String pass = scanner.nextLine().trim().toLowerCase();
-            while (pass.equals("")) {
-                pass = scanner.nextLine().trim().toLowerCase();
-            }
-            msg += " " + pass;
+//            System.out.println("Enter LOGIN");
+//            name = scanner.nextLine().trim().toLowerCase();
+//            while (name.equals("")) {
+//                name = scanner.nextLine().trim().toLowerCase();
+//            }
+//            msg = name;
+//            System.out.println("Enter PASSWORD");
+//            String pass = scanner.nextLine().trim().toLowerCase();
+//            while (pass.equals("")) {
+//                pass = scanner.nextLine().trim().toLowerCase();
+//            }
+//            msg += " " + pass;
             buildAndSendMessage(msg);
         }
     }
