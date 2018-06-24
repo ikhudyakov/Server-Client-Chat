@@ -7,11 +7,11 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #2E3348;" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="client.controllers.RegController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="449.0" prefWidth="600.0" style="-fx-background-color: #2E3348;" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controllers.RegController">
     <children>
-        <AnchorPane layoutY="101.0" prefHeight="300.0" prefWidth="600.0" style="-fx-background-color: fafafa;">
+        <AnchorPane layoutY="82.0" prefHeight="339.0" prefWidth="600.0" style="-fx-background-color: fafafa;">
             <children>
-                <TextField fx:id="login_field" layoutX="126.0" layoutY="77.0" prefHeight="40.0" prefWidth="348.0" promptText="Login" style="-fx-background-color: fafafb; -fx-border-color: silver; -fx-border-radius: 5;">
+                <TextField fx:id="login_field" layoutX="126.0" layoutY="83.0" prefHeight="40.0" prefWidth="348.0" promptText="Login" style="-fx-background-color: fafafb; -fx-border-color: silver; -fx-border-radius: 5;">
                     <font>
                         <Font size="17.0" />
                     </font>
@@ -21,24 +21,25 @@
                         <Font size="17.0" />
                     </font>
                 </PasswordField>
-                <Label layoutX="189.0" text="Registration" textFill="#2e3348">
+                <Label alignment="CENTER" contentDisplay="CENTER" layoutX="151.0" text="Registration" textFill="#2e3348">
                     <font>
                         <Font name="Brush Script MT Italic" size="56.0" />
                     </font>
                 </Label>
-                <Button fx:id="enterButton" layoutX="217.0" layoutY="233.0" mnemonicParsing="false" prefHeight="53.0" prefWidth="166.0" style="-fx-background-color: #f39c63;" text="Confirm" textFill="WHITE">
+                <Button fx:id="enterButton1" layoutX="217.0" layoutY="269.0" mnemonicParsing="false" prefHeight="53.0" prefWidth="166.0" style="-fx-background-color: #f39c63;" text="Confirm" textFill="WHITE">
                     <font>
                         <Font name="BrushScriptStd" size="26.0" />
                     </font>
                 </Button>
-            <PasswordField fx:id="repeat_password_field" layoutX="126.0" layoutY="184.0" prefHeight="25.0" prefWidth="348.0" promptText="Repeat password" style="-fx-background-color: fafafa; -fx-border-color: silver; -fx-border-radius: 5;">
+            <PasswordField fx:id="repeat_password_field" layoutX="126.0" layoutY="177.0" prefHeight="25.0" prefWidth="348.0" promptText="Repeat password" style="-fx-background-color: fafafa; -fx-border-color: silver; -fx-border-radius: 5;">
                <font>
                   <Font size="17.0" />
                </font>
             </PasswordField>
+            <Label fx:id="error_label" layoutX="286.0" layoutY="233.0" />
             </children>
         </AnchorPane>
-        <Label layoutX="214.0" layoutY="13.0" text="ChatTick" textFill="WHITE">
+        <Label layoutX="195.0" text="ChatTick" textFill="WHITE">
             <font>
                 <Font name="Brush Script MT Italic" size="56.0" />
             </font>
