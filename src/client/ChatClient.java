@@ -117,7 +117,7 @@ public class ChatClient {
     private List<Integer> allId;
     private String msg;
     private boolean checkAuth = false;
-    Controller controller;
+    //Controller controller;
 
     enum ClientState {
         CONNECTED,
@@ -180,6 +180,24 @@ public class ChatClient {
                     }
                 }
             );
+
+        registrationButton.setOnAction(event -> {
+            registrationButton.getScene().getWindow().hide();
+
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/registration.fxml"));
+
+            try {
+                loader.load();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            Parent root = loader.getRoot();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+        });
 //        System.out.println("1 - sign up\n2 - log in");
 //        while (true) {
 //            msg = scanner.nextLine();
