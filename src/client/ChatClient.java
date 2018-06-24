@@ -57,77 +57,19 @@ public class ChatClient {
 
         Thread reader = new Thread(new Reader(socket));
         reader.start();
-        controller.enterButton.setOnAction(event -> {
 
-                    String msg;
-                    System.out.println("authentication");
-                    while (true) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        if (clientState == ClientState.LOGGED_IN)
-                            break;
-                        //System.out.println("Enter LOGIN");
-                        //name = scanner.nextLine().trim().toLowerCase();
-
-                        String login = controller.login_field.getText().toLowerCase().trim();
-                        String password = controller.password_field.getText().toLowerCase().trim();
-                        if (!login.equals("") && !password.equals("")) {
-                            msg = login + " " + password;
-                            buildAndSendMessage(msg);
-                        }
-                    }
-                    if (clientState == ClientState.LOGGED_IN){
-                        controller.enterButton.getScene().getWindow().hide();
-
-                        FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(getClass().getResource("/chat.fxml"));
-
-                        try {
-                            loader.load();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        Parent root = loader.getRoot();
-                        Stage stage = new Stage();
-                        stage.setScene(new Scene(root));
-                        stage.showAndWait();
-                    }
-                }
-            );
-
-        controller.registrationButton.setOnAction(event -> {
-            controller.registrationButton.getScene().getWindow().hide();
-
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/registration.fxml"));
-
-            try {
-                loader.load();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            Parent root = loader.getRoot();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.showAndWait();
-        });
-//        System.out.println("1 - sign up\n2 - log in");
-//        while (true) {
-//            msg = scanner.nextLine();
-//            if (msg.equals("1")) {
-//                registration();
-//                authentication();
-//                break;
-//            } else if (msg.equals("2")) {
-//                authentication();
-//                break;
-//            } else System.out.println("error");
-//        }
+        System.out.println("1 - sign up\n2 - log in");
+        while (true) {
+            msg = scanner.nextLine();
+            if (msg.equals("1")) {
+                registration();
+                authentication();
+                break;
+            } else if (msg.equals("2")) {
+                authentication();
+                break;
+            } else System.out.println("error");
+        }
         showAllCommands();
         System.out.println("Enter message to send: ");
         textScanner();
