@@ -25,88 +25,6 @@ import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 
 public class ChatClient {
 
-
-
-
-    @FXML
-    private ResourceBundle resources;
-
-    @FXML
-    private URL location;
-
-    @FXML
-    private TextField login_field;
-
-    @FXML
-    private PasswordField password_field;
-
-    @FXML
-    private Button enterButton;
-
-    @FXML
-    private Button registrationButton;
-
-    @FXML
-    void initialize() {
-        enterButton.setOnAction(event -> {
-            String login = login_field.getText().toLowerCase().trim();
-            String password = password_field.getText().toLowerCase().trim();
-
-            if (!login.equals("") && !password.equals("")){
-                String msg = login + " " + password;
-                buildAndSendMessage(msg);
-                System.out.println("Вы нажали кнопку Enter " + msg);
-
-                if(true) {// условие успешной авторизации, после проверки которой происходит переход в окно главного чата
-                    enterButton.getScene().getWindow().hide();
-
-                    FXMLLoader loader = new FXMLLoader();
-                    loader.setLocation(getClass().getResource("/chat.fxml"));
-
-                    try {
-                        loader.load();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Parent root = loader.getRoot();
-                    Stage stage = new Stage();
-                    stage.setScene(new Scene(root));
-                    stage.showAndWait();
-                }
-            } else
-                System.out.println("Login or password is empty");
-        });
-
-        registrationButton.setOnAction(event -> {
-            registrationButton.getScene().getWindow().hide();
-
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/registration.fxml"));
-
-            try {
-                loader.load();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            Parent root = loader.getRoot();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.showAndWait();
-        });
-
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                System.exit(0);
-            }
-        });
-    }
-
-
-
-
-
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");    // формат времени
     private SocketAddress serverAddress;    // канал связи
     private String name;
@@ -117,7 +35,7 @@ public class ChatClient {
     private List<Integer> allId;
     private String msg;
     private boolean checkAuth = false;
-    //Controller controller;
+    Controller controller;
 
     enum ClientState {
         CONNECTED,
@@ -139,7 +57,7 @@ public class ChatClient {
 
         Thread reader = new Thread(new Reader(socket));
         reader.start();
-        enterButton.setOnAction(event -> {
+        controller.enterButton.setOnAction(event -> {
 
                     String msg;
                     System.out.println("authentication");
@@ -154,15 +72,15 @@ public class ChatClient {
                         //System.out.println("Enter LOGIN");
                         //name = scanner.nextLine().trim().toLowerCase();
 
-                        String login = login_field.getText().toLowerCase().trim();
-                        String password = password_field.getText().toLowerCase().trim();
+                        String login = controller.login_field.getText().toLowerCase().trim();
+                        String password = controller.password_field.getText().toLowerCase().trim();
                         if (!login.equals("") && !password.equals("")) {
                             msg = login + " " + password;
                             buildAndSendMessage(msg);
                         }
                     }
                     if (clientState == ClientState.LOGGED_IN){
-                        enterButton.getScene().getWindow().hide();
+                        controller.enterButton.getScene().getWindow().hide();
 
                         FXMLLoader loader = new FXMLLoader();
                         loader.setLocation(getClass().getResource("/chat.fxml"));
@@ -181,8 +99,8 @@ public class ChatClient {
                 }
             );
 
-        registrationButton.setOnAction(event -> {
-            registrationButton.getScene().getWindow().hide();
+        controller.registrationButton.setOnAction(event -> {
+            controller.registrationButton.getScene().getWindow().hide();
 
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/registration.fxml"));

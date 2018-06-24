@@ -35,11 +35,57 @@ public class Controller {
     public Button enterButton;
 
     @FXML
-    private Button registrationButton;
+    public Button registrationButton;
 
     @FXML
     public void initialize() {
+        enterButton.setOnAction(event -> {
+            String login = login_field.getText().toLowerCase().trim();
+            String password = password_field.getText().toLowerCase().trim();
 
+            if (!login.equals("") && !password.equals("")){
+                String msg = login + " " + password;
+                //ChatClient.buildAndSendMessage(msg);
+                System.out.println("Вы нажали кнопку Enter " + msg);
+
+                if(true) {// условие успешной авторизации, после проверки которой происходит переход в окно главного чата
+                    enterButton.getScene().getWindow().hide();
+
+                    FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(getClass().getResource("/chat.fxml"));
+
+                    try {
+                        loader.load();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Parent root = loader.getRoot();
+                    Stage stage = new Stage();
+                    stage.setScene(new Scene(root));
+                    stage.showAndWait();
+                }
+            } else
+                System.out.println("Login or password is empty");
+        });
+
+        registrationButton.setOnAction(event -> {
+            registrationButton.getScene().getWindow().hide();
+
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/registration.fxml"));
+
+            try {
+                loader.load();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            Parent root = loader.getRoot();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+        });
 
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
