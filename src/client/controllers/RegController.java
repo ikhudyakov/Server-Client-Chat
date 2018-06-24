@@ -1,12 +1,11 @@
 package client.controllers;
 
+import java.net.URL;
+import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-
-import java.net.URL;
-import java.util.ResourceBundle;
 
 public class RegController {
 
@@ -25,10 +24,8 @@ public class RegController {
     @FXML
     private Button enterButton;
 
-
-
     @FXML
-    private PasswordField repeat_password_field;
+    private TextField email_field;
 
     @FXML
     void initialize() {

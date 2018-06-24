@@ -11,12 +11,12 @@
     <children>
         <AnchorPane layoutY="101.0" prefHeight="300.0" prefWidth="600.0" style="-fx-background-color: fafafa;">
             <children>
-                <TextField fx:id="login_field" layoutX="126.0" layoutY="77.0" prefHeight="40.0" prefWidth="348.0" promptText="Login" style="-fx-background-color: fafafb; -fx-border-color: silver; -fx-border-radius: 5;">
+                <TextField fx:id="login_field" layoutX="7.0" layoutY="77.0" prefHeight="40.0" prefWidth="348.0" promptText="Login" style="-fx-background-color: fafafb; -fx-border-color: silver; -fx-border-radius: 5;">
                     <font>
                         <Font size="17.0" />
                     </font>
                 </TextField>
-                <PasswordField fx:id="password_field" layoutX="126.0" layoutY="130.0" prefHeight="25.0" prefWidth="348.0" promptText="Password" style="-fx-background-color: fafafa; -fx-border-color: silver; -fx-border-radius: 5;">
+                <PasswordField fx:id="password_field" layoutX="7.0" layoutY="130.0" prefHeight="25.0" prefWidth="348.0" promptText="Password" style="-fx-background-color: fafafa; -fx-border-color: silver; -fx-border-radius: 5;">
                     <font>
                         <Font size="17.0" />
                     </font>
@@ -31,11 +31,11 @@
                         <Font name="BrushScriptStd" size="26.0" />
                     </font>
                 </Button>
-            <PasswordField fx:id="repeat_password_field" layoutX="126.0" layoutY="184.0" prefHeight="25.0" prefWidth="348.0" promptText="Repeat password" style="-fx-background-color: fafafa; -fx-border-color: silver; -fx-border-radius: 5;">
+            <TextField fx:id="email_field" layoutX="7.0" layoutY="181.0" prefHeight="40.0" prefWidth="348.0" promptText="E-mail" style="-fx-background-color: fafafb; -fx-border-color: silver; -fx-border-radius: 5;">
                <font>
                   <Font size="17.0" />
                </font>
-            </PasswordField>
+            </TextField>
             </children>
         </AnchorPane>
         <Label layoutX="214.0" layoutY="13.0" text="ChatTick" textFill="WHITE">
