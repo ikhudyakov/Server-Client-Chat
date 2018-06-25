@@ -161,7 +161,7 @@ public class ChatServer {
                                 }
                                 switch (status.getStatusCode()) {
                                     case 6:
-                                        System.out.printf("[%s] Successful authentication\n", FORMAT.format(System.currentTimeMillis()));
+                                        System.out.printf("[%s] Successful registration\n", FORMAT.format(System.currentTimeMillis()));
                                         break;
                                     case 7:
                                         System.out.printf("[%s] login [%s] already exists\n", FORMAT.format(System.currentTimeMillis()), login);

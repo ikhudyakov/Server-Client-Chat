@@ -18,10 +18,11 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 
-import static client.ChatClient.parseAddress;
 import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 
 public class Controller {
+
+    private static ChatClient client;
 
     @FXML
     private ResourceBundle resources;
@@ -50,10 +51,15 @@ public class Controller {
     @FXML
     public Label error_label;
 
+    public static ChatClient getChatClient (){
+        return client;
+    }
+
     @FXML
     public void initialize() throws IOException, InterruptedException {
 
         ChatClient chatClient = new ChatClient(ChatClient.parseAddress("127.0.0.1:8081"), new Scanner(System.in));
+        client = chatClient;
         chatClient.start();
 
         enterButton.setOnAction(event -> {
@@ -80,7 +86,6 @@ public class Controller {
             if (chatClient.checkAuth) {
                 enterButton.getScene().getWindow().hide();
 
-
                 FXMLLoader loader = new FXMLLoader();
                 loader.setLocation(getClass().getResource("/chat.fxml"));
 
@@ -93,6 +98,7 @@ public class Controller {
                 Parent root = loader.getRoot();
                 Stage stage = new Stage();
                 stage.setScene(new Scene(root));
+                stage.setResizable(false);
                 stage.showAndWait();
 
             } else error_label.setText("ERROR");
@@ -114,23 +120,8 @@ public class Controller {
             Parent root = loader.getRoot();
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
+            stage.setResizable(false);
             stage.showAndWait();
-
-            enterButton1.setOnAction(event1 -> {
-                String login = login_field.getText().toLowerCase().trim();
-                String password = password_field.getText().toLowerCase().trim();
-                String repeat_password = repeat_password_field.getText().toLowerCase().trim();
-                if (!login.equals("") && !password.equals("")) {
-                    if (password.equals(repeat_password)) {
-                        String msg = login + " " + password;
-                        try {
-                            chatClient.registration(msg);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    } else error_label.setText("Error");
-                } else error_label.setText("Error");
-            });
 
         });
 

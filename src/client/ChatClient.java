@@ -35,6 +35,7 @@ public class ChatClient {
     private List<Integer> allId;
     private String msg;
     public boolean checkAuth = false;
+    public boolean checkReg = false;
     Controller controller;
 
     public enum ClientState {
@@ -78,24 +79,24 @@ public class ChatClient {
     public void registration(String msg) throws InterruptedException {
         clientState = ClientState.REGISTERED;
         System.out.println("registration");
-        while (true) {
-            Thread.sleep(1000);
-            if (clientState == ClientState.CONNECTED)
-                break;
-            System.out.println("Enter LOGIN");
-            name = scanner.nextLine().trim().toLowerCase();
-            while (name.equals("")) {
-                name = scanner.nextLine().trim().toLowerCase();
-            }
-            msg = name;
-            System.out.println("Enter PASSWORD");
-            String pass = scanner.nextLine().trim().toLowerCase();
-            while (pass.equals("")) {
-                pass = scanner.nextLine().trim().toLowerCase();
-            }
-            msg += " " + pass;
+        //while (true) {
+//            Thread.sleep(1000);
+            if (clientState == ClientState.REGISTERED)
+//                break;
+//            System.out.println("Enter LOGIN");
+//            name = scanner.nextLine().trim().toLowerCase();
+//            while (name.equals("")) {
+//                name = scanner.nextLine().trim().toLowerCase();
+//            }
+//            msg = name;
+//            System.out.println("Enter PASSWORD");
+//            String pass = scanner.nextLine().trim().toLowerCase();
+//            while (pass.equals("")) {
+//                pass = scanner.nextLine().trim().toLowerCase();
+//            }
+//            msg += " " + pass;
             buildAndSendMessage(msg);
-        }
+        //}
     }
 
     private void textScanner() {
@@ -233,8 +234,9 @@ public class ChatClient {
                                 System.out.printf("created ChatRoom with %s ID: %d\n", Arrays.toString(status.getUsers().toArray()), status.getIdChatRoom());
                                 break;
                             case 6:
-                                System.out.println("Successful authentication");
+                                System.out.println("Successful registration");
                                 clientState = ClientState.CONNECTED;
+                                checkReg = true;
                                 break;
                             case 7:
                                 System.out.printf("login [%s] already exists\n", status.getLogin());
