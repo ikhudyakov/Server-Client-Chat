@@ -34,9 +34,14 @@ public class ChatClient {
     private int idChatRoom = 0;
     private List<Integer> allId;
     private String msg;
+    private Status status;
     public boolean checkAuth = false;
     public boolean checkReg = false;
     Controller controller;
+
+    public Status getStatus() {
+        return status;
+    }
 
     public enum ClientState {
         CONNECTED,
@@ -210,7 +215,7 @@ public class ChatClient {
 
                     Messages messages = (Messages) objIn.readObject();
                     if (messages instanceof Status) {
-                        Status status = (Status) messages;
+                        status = (Status) messages;
                         if (!allId.contains(status.getIdChatRoom())) {
                             allId.add(status.getIdChatRoom());
                         }

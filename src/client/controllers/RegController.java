@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import messages.Status;
 
 public class RegController {
 
@@ -41,14 +42,18 @@ public class RegController {
     @FXML
     private Label error_label;
 
+    Status status;
+    private String login;
+    private String password;
+
     @FXML
     void initialize() {
 
         ChatClient chatClient = Controller.getChatClient();
 
         enterButton.setOnAction(event1 -> {
-            String login = login_field.getText().toLowerCase().trim();
-            String password = password_field.getText().toLowerCase().trim();
+            login = login_field.getText().toLowerCase().trim();
+            password = password_field.getText().toLowerCase().trim();
             String repeat_password = repeat_password_field.getText().toLowerCase().trim();
             if (!login.equals("") && !password.equals("")) {
                 if (password.equals(repeat_password)) {
@@ -58,35 +63,50 @@ public class RegController {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                } else error_label.setText("Error");
-            } else error_label.setText("Error");
-        });
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        if (chatClient.checkReg){
-            enterButton.getScene().getWindow().hide();
-
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/chat.fxml"));
-
+                } else error_label.setText("check password");
+            } else error_label.setText("empty field");
             try {
-                loader.load();
-            } catch (IOException e) {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            status = chatClient.getStatus();
+            if (status.getStatusCode() == 7)
+                error_label.setText("login " + status.getLogin() + " already exists");
+            if (status.getStatusCode() == 6) {
+                error_label.setText("Successful registration");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-            Parent root = loader.getRoot();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.setResizable(false);
-            stage.showAndWait();
-        }
+                if (chatClient.checkReg) {
+                    String msg = login + " " + password;
+                    try {
+                        chatClient.authentication(msg);
+                        enterButton.getScene().getWindow().hide();
 
+                        FXMLLoader loader = new FXMLLoader();
+                        loader.setLocation(getClass().getResource("/chat.fxml"));
+
+                        try {
+                            loader.load();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        Parent root = loader.getRoot();
+                        Stage stage = new Stage();
+                        stage.setScene(new Scene(root));
+                        stage.setResizable(false);
+                        stage.showAndWait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 }
 
