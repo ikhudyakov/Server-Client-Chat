@@ -9,16 +9,23 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.Scanner;
 
-import static client.ChatClient.parseAddress;
-
 public class Main extends Application {
+
+    Stage window;
     @Override
     public void start(Stage primaryStage) throws Exception {
+        window = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("/start.fxml"));
-        primaryStage.setTitle("ChatTick");
-        primaryStage.setScene(new Scene(root, 600, 400));
-        primaryStage.setResizable(false);
-        primaryStage.show();
+        window.setTitle("ChatTick");
+        window.setScene(new Scene(root, 600, 400));
+        window.setResizable(false);
+        window.show();
+
+        window.setOnCloseRequest(e -> closeProgram());
+    }
+
+    private void closeProgram(){
+        window.close();
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {

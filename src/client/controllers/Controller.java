@@ -1,6 +1,7 @@
 package client.controllers;
 
 import client.ChatClient;
+import components.IOUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -10,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import messages.Status;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -55,12 +57,17 @@ public class Controller {
         return client;
     }
 
+    Stage window;
+    ChatClient chatClient;
+
     @FXML
     public void initialize() throws IOException, InterruptedException {
 
-        ChatClient chatClient = new ChatClient(ChatClient.parseAddress("127.0.0.1:8081"), new Scanner(System.in));
+        chatClient = new ChatClient(ChatClient.parseAddress("127.0.0.1:8081"), new Scanner(System.in));
         client = chatClient;
         chatClient.start();
+
+
 
         enterButton.setOnAction(event -> {
 
@@ -75,13 +82,21 @@ public class Controller {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            } else error_label.setText("ERROR");
+            }
 
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            Status status = chatClient.getStatus();
+            if (status.getStatusCode() == 1)
+                error_label.setText("Success");
+            if (status.getStatusCode() == 2)
+                error_label.setText("incorrect login");
+            if (status.getStatusCode() == 3)
+                error_label.setText("incorrect password");
 
             if (chatClient.checkAuth) {
                 enterButton.getScene().getWindow().hide();
@@ -100,9 +115,10 @@ public class Controller {
                 stage.setScene(new Scene(root));
                 stage.setResizable(false);
                 stage.showAndWait();
-
-            } else error_label.setText("ERROR");
+            }
         });
+
+
 
         registrationButton.setOnAction(event -> {
             registrationButton.getScene().getWindow().hide();
@@ -122,8 +138,8 @@ public class Controller {
             stage.setScene(new Scene(root));
             stage.setResizable(false);
             stage.showAndWait();
-
         });
+
 
 
         addWindowListener(new WindowAdapter() {
@@ -131,6 +147,10 @@ public class Controller {
                 System.exit(0);
             }
         });
+    }
+
+    private void closeProgramm(){
+        IOUtils.closeQuietly(chatClient.getSocket());
     }
 }
 

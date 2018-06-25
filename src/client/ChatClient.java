@@ -37,10 +37,13 @@ public class ChatClient {
     private Status status;
     public boolean checkAuth = false;
     public boolean checkReg = false;
-    Controller controller;
 
     public Status getStatus() {
         return status;
+    }
+
+    public Socket getSocket() {
+        return socket;
     }
 
     public enum ClientState {
