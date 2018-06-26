@@ -11,21 +11,20 @@ import java.util.Scanner;
 
 public class Main extends Application {
 
-    Stage window;
     @Override
     public void start(Stage primaryStage) throws Exception {
-        window = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("/start.fxml"));
-        window.setTitle("ChatTick");
-        window.setScene(new Scene(root, 600, 400));
-        window.setResizable(false);
-        window.show();
-
-        window.setOnCloseRequest(e -> closeProgram());
+        primaryStage.setTitle("ChatTick");
+        primaryStage.setScene(new Scene(root, 600, 400));
+        primaryStage.setResizable(false);
+        primaryStage.setOnCloseRequest(e -> closeProgram());
+        primaryStage.show();
     }
 
+
     private void closeProgram(){
-        window.close();
+        System.out.println("EXIT");
+        System.exit(0);
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {

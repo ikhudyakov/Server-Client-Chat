@@ -41,7 +41,7 @@ public class ChatServer {
     private void getChatRooms() {
         int max;
         try (java.sql.Connection JDBCConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/chatdb",
-               "admin", "1qaz2wsx")) {
+                "admin", "1qaz2wsx")) {
             PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT id_room FROM chatrooms");
             try (ResultSet rs = prepared.executeQuery()) {
                 if (rs.next()) {
@@ -110,7 +110,7 @@ public class ChatServer {
         @Override
         public void run() {
             ObjectInputStream objIn = null;
-            BufferedInputStream bis = null;
+//            BufferedInputStream bis = null;
             Status status = null;
             String login = null;
             String password;
@@ -120,7 +120,7 @@ public class ChatServer {
             try {
 //                while (true) {
 //                    if ((con.socket.getInputStream()) instanceof ObjectInputStream) {
-                        objIn = new ObjectInputStream(con.socket.getInputStream());
+                objIn = new ObjectInputStream(con.socket.getInputStream());
 //                        break;
 //                    } else if ((con.socket.getInputStream()) instanceof FileInputStream) {
 //                        bis = new BufferedInputStream(con.socket.getInputStream());
@@ -142,6 +142,8 @@ public class ChatServer {
                             Registration registration = (Registration) messages;
                             login = registration.getLogin();
                             password = registration.getPassword();
+                            if (connectionMap.containsKey(login))
+                                connectionMap.remove(login);
                             connectionMap.put(login, con);
 
 
@@ -195,6 +197,8 @@ public class ChatServer {
                             Authentication authentication = (Authentication) messages;
                             login = authentication.getLogin();
                             password = authentication.getPassword();
+                            if (connectionMap.containsKey(login))
+                                connectionMap.remove(login);
                             connectionMap.put(login, con);
 
                             PreparedStatement prepared = JDBCConnection.prepareStatement("SELECT * FROM users WHERE login=?");
@@ -354,8 +358,9 @@ public class ChatServer {
                 e.printStackTrace();
             } finally {       // выполнится в любом случае
 
-                if (login != null && userConnection.containsKey(login))
+                if (login != null && userConnection.containsKey(login)) {
                     userConnection.remove(login);   // удаляет пользователя из Map
+                }
                 IOUtils.closeQuietly(con.socket);
             }
         }

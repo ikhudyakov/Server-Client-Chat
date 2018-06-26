@@ -58,6 +58,7 @@ public class ChatClient {
         this.serverAddress = serverAddress;
         this.scanner = scanner;
         allId = new ArrayList<>();
+        status = new Status(0);
     }
 
     public void start() throws IOException, InterruptedException {

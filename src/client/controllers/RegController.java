@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import client.ChatClient;
+import components.IOUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -19,12 +20,6 @@ import messages.Status;
 public class RegController {
 
     @FXML
-    private ResourceBundle resources;
-
-    @FXML
-    private URL location;
-
-    @FXML
     private TextField login_field;
 
     @FXML
@@ -37,21 +32,19 @@ public class RegController {
     private Button enterButton;
 
     @FXML
-    private TextField email_field;
-
-    @FXML
     private Label error_label;
 
     Status status;
     private String login;
     private String password;
+    private ChatClient chatClient;
 
     @FXML
     void initialize() {
 
-        ChatClient chatClient = Controller.getChatClient();
+        chatClient = Controller.getChatClient();
 
-        enterButton.setOnAction(event1 -> {
+        enterButton.setOnAction(event -> {
             login = login_field.getText().toLowerCase().trim();
             password = password_field.getText().toLowerCase().trim();
             String repeat_password = repeat_password_field.getText().toLowerCase().trim();
@@ -86,27 +79,40 @@ public class RegController {
                     try {
                         chatClient.authentication(msg);
                         enterButton.getScene().getWindow().hide();
-
-                        FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(getClass().getResource("/chat.fxml"));
-
-                        try {
-                            loader.load();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        Parent root = loader.getRoot();
-                        Stage stage = new Stage();
-                        stage.setScene(new Scene(root));
-                        stage.setResizable(false);
-                        stage.showAndWait();
+                        newForm(enterButton.getScene(), "/chat.fxml");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
         });
+    }
+
+    private void newForm(Scene scene, String s) {
+        scene.getWindow().hide();
+
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource(s));
+
+
+        try {
+            loader.load();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Parent root = loader.getRoot();
+        Stage stage = new Stage();
+        stage.setScene(new Scene(root));
+        stage.setResizable(false);
+        stage.setOnCloseRequest(e -> closeProgram());
+        stage.showAndWait();
+    }
+
+    private void closeProgram(){
+        IOUtils.closeQuietly(chatClient.getSocket());
+        System.out.println("EXIT");
+        System.exit(0);
     }
 }
 

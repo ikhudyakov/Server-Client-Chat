@@ -27,25 +27,13 @@ public class Controller {
     private static ChatClient client;
 
     @FXML
-    private ResourceBundle resources;
-
-    @FXML
-    private URL location;
-
-    @FXML
     public TextField login_field;
 
     @FXML
     public PasswordField password_field;
 
     @FXML
-    public PasswordField repeat_password_field;
-
-    @FXML
     public Button enterButton;
-
-    @FXML
-    public Button enterButton1;
 
     @FXML
     public Button registrationButton;
@@ -57,8 +45,7 @@ public class Controller {
         return client;
     }
 
-    Stage window;
-    ChatClient chatClient;
+    private ChatClient chatClient;
 
     @FXML
     public void initialize() throws IOException, InterruptedException {
@@ -67,90 +54,81 @@ public class Controller {
         client = chatClient;
         chatClient.start();
 
-
-
         enterButton.setOnAction(event -> {
-
-            String login = login_field.getText().toLowerCase().trim();
-            String password = password_field.getText().toLowerCase().trim();
-
-
-            if (!login.equals("") && !password.equals("")) {
-                String msg = login + " " + password;
-                try {
-                    chatClient.authentication(msg);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            Status status = chatClient.getStatus();
-            if (status.getStatusCode() == 1)
-                error_label.setText("Success");
-            if (status.getStatusCode() == 2)
-                error_label.setText("incorrect login");
-            if (status.getStatusCode() == 3)
-                error_label.setText("incorrect password");
-
-            if (chatClient.checkAuth) {
-                enterButton.getScene().getWindow().hide();
-
-                FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(getClass().getResource("/chat.fxml"));
-
-                try {
-                    loader.load();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                Parent root = loader.getRoot();
-                Stage stage = new Stage();
-                stage.setScene(new Scene(root));
-                stage.setResizable(false);
-                stage.showAndWait();
-            }
+            auth();
         });
 
+        login_field.setOnAction(event -> {
+            auth();
+        });
 
+        password_field.setOnAction(event -> {
+            auth();
+        });
 
         registrationButton.setOnAction(event -> {
-            registrationButton.getScene().getWindow().hide();
-
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/registration.fxml"));
-
-
-            try {
-                loader.load();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            Parent root = loader.getRoot();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.setResizable(false);
-            stage.showAndWait();
-        });
-
-
-
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                System.exit(0);
-            }
+            newForm(registrationButton.getScene(), "/registration.fxml");
         });
     }
 
-    private void closeProgramm(){
+    private void newForm(Scene scene, String s) {
+        scene.getWindow().hide();
+
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource(s));
+
+
+        try {
+            loader.load();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Parent root = loader.getRoot();
+        Stage stage = new Stage();
+        stage.setScene(new Scene(root));
+        stage.setResizable(false);
+        stage.setOnCloseRequest(e -> closeProgram());
+        stage.showAndWait();
+    }
+
+    private void auth() {
+        String login = login_field.getText().toLowerCase().trim();
+        String password = password_field.getText().toLowerCase().trim();
+
+
+        if (!login.equals("") && !password.equals("")) {
+            String msg = login + " " + password;
+            try {
+                chatClient.authentication(msg);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Status status = chatClient.getStatus();
+        if (status.getStatusCode() == 1)
+            error_label.setText("Success");
+        if (status.getStatusCode() == 2)
+            error_label.setText("incorrect login");
+        if (status.getStatusCode() == 3)
+            error_label.setText("incorrect password");
+
+        if (chatClient.checkAuth) {
+            newForm(enterButton.getScene(), "/chat.fxml");
+        }
+    }
+
+    private void closeProgram(){
         IOUtils.closeQuietly(chatClient.getSocket());
+        System.out.println("EXIT");
+        System.exit(0);
     }
 }
 

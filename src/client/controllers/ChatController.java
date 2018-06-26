@@ -38,21 +38,13 @@ public class ChatController {
     @FXML
     private ListView<?> onlineUsers;
 
-    ChatClient chatClient;
+    private ChatClient chatClient;
 
     @FXML
     void initialize() {
         chatClient = Controller.getChatClient();
 
-
-
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                IOUtils.closeQuietly(chatClient.getSocket());
-                System.exit(0);
-            }
-        });
-
     }
+
 }
 

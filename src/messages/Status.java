@@ -10,6 +10,10 @@ public class Status implements Messages, Serializable{
     private List<Integer> allId;
     private int idChatRoom;
 
+    public Status(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
     public Status(int statusCode, String login) {
         this.statusCode = statusCode;
         this.login = login;
