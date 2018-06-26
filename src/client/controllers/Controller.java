@@ -114,6 +114,7 @@ public class Controller {
 
         Status status = chatClient.getStatus();
         if (status.getStatusCode() == 1)
+            chatClient.setName(login);
             error_label.setText("Success");
         if (status.getStatusCode() == 2)
             error_label.setText("incorrect login");

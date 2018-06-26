@@ -34,7 +34,7 @@ public class RegController {
     @FXML
     private Label error_label;
 
-    Status status;
+    private Status status;
     private String login;
     private String password;
     private ChatClient chatClient;
@@ -45,47 +45,64 @@ public class RegController {
         chatClient = Controller.getChatClient();
 
         enterButton.setOnAction(event -> {
-            login = login_field.getText().toLowerCase().trim();
-            password = password_field.getText().toLowerCase().trim();
-            String repeat_password = repeat_password_field.getText().toLowerCase().trim();
-            if (!login.equals("") && !password.equals("")) {
-                if (password.equals(repeat_password)) {
-                    String msg = login + " " + password;
-                    try {
-                        chatClient.registration(msg);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                } else error_label.setText("check password");
-            } else error_label.setText("empty field");
+            reg();
+        });
+
+        login_field.setOnAction(event -> {
+            reg();
+        });
+
+        password_field.setOnAction(event -> {
+            reg();
+        });
+
+        repeat_password_field.setOnAction(event -> {
+            reg();
+        });
+
+    }
+
+    private void reg() {
+        login = login_field.getText().toLowerCase().trim();
+        password = password_field.getText().toLowerCase().trim();
+        String repeat_password = repeat_password_field.getText().toLowerCase().trim();
+        if (!login.equals("") && !password.equals("")) {
+            if (password.equals(repeat_password)) {
+                String msg = login + " " + password;
+                try {
+                    chatClient.registration(msg);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else error_label.setText("check password");
+        } else error_label.setText("empty field");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        status = chatClient.getStatus();
+        if (status.getStatusCode() == 7)
+            error_label.setText("login " + status.getLogin() + " already exists");
+        if (status.getStatusCode() == 6) {
+            error_label.setText("Successful registration");
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            status = chatClient.getStatus();
-            if (status.getStatusCode() == 7)
-                error_label.setText("login " + status.getLogin() + " already exists");
-            if (status.getStatusCode() == 6) {
-                error_label.setText("Successful registration");
+
+            if (chatClient.checkReg) {
+                String msg = login + " " + password;
                 try {
-                    Thread.sleep(1000);
+                    chatClient.authentication(msg);
+                    enterButton.getScene().getWindow().hide();
+                    newForm(enterButton.getScene(), "/chat.fxml");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-                if (chatClient.checkReg) {
-                    String msg = login + " " + password;
-                    try {
-                        chatClient.authentication(msg);
-                        enterButton.getScene().getWindow().hide();
-                        newForm(enterButton.getScene(), "/chat.fxml");
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
-        });
+        }
     }
 
     private void newForm(Scene scene, String s) {

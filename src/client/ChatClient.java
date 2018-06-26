@@ -37,6 +37,15 @@ public class ChatClient {
     private Status status;
     public boolean checkAuth = false;
     public boolean checkReg = false;
+    private String text;
+
+    public String getText() {
+        return text;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public Status getStatus() {
         return status;
@@ -90,7 +99,7 @@ public class ChatClient {
         System.out.println("registration");
         //while (true) {
 //            Thread.sleep(1000);
-            if (clientState == ClientState.REGISTERED)
+        if (clientState == ClientState.REGISTERED)
 //                break;
 //            System.out.println("Enter LOGIN");
 //            name = scanner.nextLine().trim().toLowerCase();
@@ -107,6 +116,12 @@ public class ChatClient {
             buildAndSendMessage(msg);
         //}
     }
+
+    public void sendText(String text) {
+        if (!text.trim().equals(""))
+            buildAndSendMessage(text);
+    }
+
 
     private void textScanner() {
         while (!Thread.currentThread().isInterrupted()) {
@@ -183,7 +198,7 @@ public class ChatClient {
 //                pass = scanner.nextLine().trim().toLowerCase();
 //            }
 //            msg += " " + pass;
-        buildAndSendMessage(msg);
+            buildAndSendMessage(msg);
         //}
     }
 
@@ -284,6 +299,7 @@ public class ChatClient {
 
     private void printMessage(TextMessage msg) {
         System.out.printf("[%s] from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
+        text = "[" + FORMAT.format(new Date(msg.getTimestamp())) + "] " + " - " + "\"" +msg.getSender() + "\":" + " " + msg.getText();
     }
 
     private void buildAndSendMessage(List users) {
