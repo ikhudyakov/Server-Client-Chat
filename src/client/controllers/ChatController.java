@@ -62,7 +62,6 @@ public class ChatController {
                         chatMessages.add(text);
                         text = null;
                         chatClient.setCheckMes(false);
-
                     }
                 }
         );
@@ -72,7 +71,7 @@ public class ChatController {
 
 
     private void sendMes() {
-        //chatMessages.add( "USER " + text_field.getText());
+
         chatClient.sendText(text_field.getText());
         text_field.setText("");
 
