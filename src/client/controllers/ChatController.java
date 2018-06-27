@@ -67,7 +67,7 @@ public class ChatController {
                 }
         );
 
-        //new Thread(new MessageListener()).start();
+        new Thread(new MessageListener()).start();
     }
 
 
