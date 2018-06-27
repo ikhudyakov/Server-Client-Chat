@@ -23,7 +23,6 @@ import java.util.Scanner;
 import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 
 public class Controller {
-
     private ChatClient chatClient;
     private static ChatClient client;
     @FXML public TextField login_field;

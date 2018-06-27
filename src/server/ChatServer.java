@@ -329,12 +329,7 @@ public class ChatServer {
                                 while (rs.next()) {
                                     his.add(rs.getString("text"));
                                 }
-                                if (his.size() >= 15) {
-                                    for (int i = 0; i < (his.size() - 15); i++) {
-                                        his.remove(i);
-                                    }
-                                    msg.setText(his);
-                                }
+                                msg.setText(his);
                             }
                             messageQueue.add(msg);
                         } else if (messages instanceof FileMessage) {

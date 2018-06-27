@@ -37,7 +37,16 @@ public class ChatClient {
     private Status status;
     public boolean checkAuth = false;
     public boolean checkReg = false;
+    private boolean checkMes = false;
     private String text;
+
+    public boolean getCheckMes() {
+        return checkMes;
+    }
+
+    public void setCheckMes(boolean checkMes) {
+        this.checkMes = checkMes;
+    }
 
     public String getText() {
         return text;
@@ -81,44 +90,44 @@ public class ChatClient {
         Thread reader = new Thread(new Reader(socket));
         reader.start();
 
-//        System.out.println("1 - sign up\n2 - log in");
-//        while (true) {
-//            msg = scanner.nextLine();
-//            if (msg.equals("1")) {
-//                registration();
-//                authentication();
-//                break;
-//            } else if (msg.equals("2")) {
-//                authentication();
-//                break;
-//            } else System.out.println("error");
-//        }
-//        showAllCommands();
-//        System.out.println("Enter message to send: ");
-//        textScanner();
+        /*System.out.println("1 - sign up\n2 - log in");
+        while (true) {
+            msg = scanner.nextLine();
+            if (msg.equals("1")) {
+                registration();
+                authentication();
+                break;
+            } else if (msg.equals("2")) {
+                authentication();
+                break;
+            } else System.out.println("error");
+        }
+        showAllCommands();
+        System.out.println("Enter message to send: ");
+        textScanner();*/
     }
 
     public void registration(String msg) throws InterruptedException {
         clientState = ClientState.REGISTERED;
         System.out.println("registration");
-        //while (true) {
-//            Thread.sleep(1000);
-        if (clientState == ClientState.REGISTERED)
-//                break;
-//            System.out.println("Enter LOGIN");
-//            name = scanner.nextLine().trim().toLowerCase();
-//            while (name.equals("")) {
-//                name = scanner.nextLine().trim().toLowerCase();
-//            }
-//            msg = name;
-//            System.out.println("Enter PASSWORD");
-//            String pass = scanner.nextLine().trim().toLowerCase();
-//            while (pass.equals("")) {
-//                pass = scanner.nextLine().trim().toLowerCase();
-//            }
-//            msg += " " + pass;
+        /*while (true) {
+            Thread.sleep(1000);
+        if (clientState != ClientState.REGISTERED)
+                break;
+            System.out.println("Enter LOGIN");
+            name = scanner.nextLine().trim().toLowerCase();
+            while (name.equals("")) {
+                name = scanner.nextLine().trim().toLowerCase();
+            }
+            msg = name;
+            System.out.println("Enter PASSWORD");
+            String pass = scanner.nextLine().trim().toLowerCase();
+            while (pass.equals("")) {
+                pass = scanner.nextLine().trim().toLowerCase();
+            }
+            msg += " " + pass;*/
             buildAndSendMessage(msg);
-        //}
+//        }
     }
 
     public void sendText(String text) {
@@ -149,7 +158,7 @@ public class ChatClient {
                 msg = scanner.nextLine();
                 if (allId.contains(Integer.parseInt(msg))) {
                     idChatRoom = Integer.parseInt(msg);
-                    //buildAndSendMessage(idChatRoom, name);
+                    buildAndSendMessage(idChatRoom, name);
                 } else {
                     System.out.println("Error room ID");
                 }
@@ -179,31 +188,31 @@ public class ChatClient {
         System.out.print("All Commands:\n// - Show all commands\n" +
                 "//newroom - Crate new chatroom\n//exit - Exit\n" +
                 "//switchroom - Switch chat room(all users ID: 0)\n" +
-                "//allroom - Show all chat room\n//sendfile - Send file (path)\n" +
+                "//allroom - Show all chat room\n" +
                 "//showhistory - Show history chat room\n");
     }
 
     public void authentication(String msg) throws InterruptedException {
         //String msg;
         System.out.println("authentication");
-        //while (true) {
-        //Thread.sleep(1000);
-        if (clientState == ClientState.CONNECTED)
-            //break;
-//            System.out.println("Enter LOGIN");
-//            name = scanner.nextLine().trim().toLowerCase();
-//            while (name.equals("")) {
-//                name = scanner.nextLine().trim().toLowerCase();
-//            }
-//            msg = name;
-//            System.out.println("Enter PASSWORD");
-//            String pass = scanner.nextLine().trim().toLowerCase();
-//            while (pass.equals("")) {
-//                pass = scanner.nextLine().trim().toLowerCase();
-//            }
-//            msg += " " + pass;
+        /*while (true) {
+        Thread.sleep(1000);
+        if (clientState == ClientState.LOGGED_IN)
+            break;
+            System.out.println("Enter LOGIN");
+            name = scanner.nextLine().trim().toLowerCase();
+            while (name.equals("")) {
+                name = scanner.nextLine().trim().toLowerCase();
+            }
+            msg = name;
+            System.out.println("Enter PASSWORD");
+            String pass = scanner.nextLine().trim().toLowerCase();
+            while (pass.equals("")) {
+                pass = scanner.nextLine().trim().toLowerCase();
+            }
+            msg += " " + pass;*/
             buildAndSendMessage(msg);
-        //}
+//        }
     }
 
 
@@ -302,6 +311,7 @@ public class ChatClient {
 
 
     private void printMessage(TextMessage msg) {
+        checkMes = true;
         System.out.printf("[%s] from %s : %s\n", FORMAT.format(new Date(msg.getTimestamp())), msg.getSender(), msg.getText());
         text = "[" + FORMAT.format(new Date(msg.getTimestamp())) + "] " + " - " + "\"" +msg.getSender() + "\":" + " " + msg.getText();
     }
@@ -325,6 +335,7 @@ public class ChatClient {
             objOut.writeObject(showHistory);
             objOut.flush();
         } catch (IOException e) {
+            e.printStackTrace();
             IOUtils.closeQuietly(socket);
 
             throw new ChatUncheckedException("Error sending components", e);
@@ -373,6 +384,20 @@ public class ChatClient {
         String[] split = addr.split(":");
         return new InetSocketAddress(split[0], Integer.parseInt(split[1]));
     }
+
+    /*public static void main(String[] args) throws IOException, InterruptedException {
+        String address = null;
+
+        if (args != null && args.length > 0)
+            address = args[0];
+        Scanner scanner = new Scanner(System.in);
+        if (address == null) {
+            //System.out.println("Enter server address");
+            address = scanner.nextLine();
+        }
+        ChatClient client = new ChatClient(parseAddress(address), scanner);
+        client.start();
+    }*/
 
 
 }
