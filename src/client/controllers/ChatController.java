@@ -1,5 +1,6 @@
 package client.controllers;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -26,19 +27,21 @@ public class ChatController {
     @FXML private ListView<String> messagesList;
     @FXML private Button sendButton;
     @FXML private ListView<String> onlineUsers;
+    @FXML private Label login_label;
     private String text;
+    private ChatClient chatClient;
+    private String currentLogin;
 
     ObservableList<String> chatMessages = FXCollections.observableArrayList();
-    ObservableList<String> userList = FXCollections.observableArrayList();
+    ObservableList<String> loginOfUser = FXCollections.observableArrayList();
 
-    private ChatClient chatClient;
 
     @FXML void initialize() {
+        currentLogin = chatClient.getName();
+        login_label.setText(currentLogin);
         chatClient = Controller.getChatClient();
-//
-
+        onlineUsers.setItems(loginOfUser);
         messagesList.setItems(chatMessages);
-        onlineUsers.setItems(userList);
 
         sendButton.setOnAction(event -> {
             sendMes();
@@ -47,7 +50,6 @@ public class ChatController {
         text_field.setOnAction(event -> {
             sendMes();
         });
-
     }
 
     private void sendMes() {

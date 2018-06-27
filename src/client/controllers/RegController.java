@@ -39,6 +39,10 @@ public class RegController {
     private String password;
     private ChatClient chatClient;
 
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
     @FXML
     void initialize() {
 
