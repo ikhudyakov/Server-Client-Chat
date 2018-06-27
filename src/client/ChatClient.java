@@ -55,6 +55,10 @@ public class ChatClient {
         return socket;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public enum ClientState {
         CONNECTED,
         LOGGED_IN,

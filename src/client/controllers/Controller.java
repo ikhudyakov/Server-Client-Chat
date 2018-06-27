@@ -24,28 +24,23 @@ import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 
 public class Controller {
 
+    private ChatClient chatClient;
     private static ChatClient client;
+    @FXML public TextField login_field;
+    @FXML public PasswordField password_field;
+    @FXML public Button enterButton;
+    @FXML public Button registrationButton;
+    @FXML public Label error_label;
 
-    @FXML
-    public TextField login_field;
-
-    @FXML
-    public PasswordField password_field;
-
-    @FXML
-    public Button enterButton;
-
-    @FXML
-    public Button registrationButton;
-
-    @FXML
-    public Label error_label;
+    public TextField getLogin_field() {
+        return login_field;
+    }
 
     public static ChatClient getChatClient (){
         return client;
     }
 
-    private ChatClient chatClient;
+
 
     @FXML
     public void initialize() throws IOException, InterruptedException {
