@@ -29,6 +29,7 @@ public class ChatController {
     private String text;
 
     ObservableList<String> chatMessages = FXCollections.observableArrayList();
+    ObservableList<String> userList = FXCollections.observableArrayList();
 
     private ChatClient chatClient;
 
@@ -37,6 +38,7 @@ public class ChatController {
 //
 
         messagesList.setItems(chatMessages);
+        onlineUsers.setItems(userList);
 
         sendButton.setOnAction(event -> {
             sendMes();

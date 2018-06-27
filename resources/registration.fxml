@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -7,7 +11,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="422.0" prefWidth="600.0" style="-fx-background-color: #2E3348;" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controllers.RegController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="422.0" prefWidth="600.0" style="-fx-background-color: #2E3348;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controllers.RegController">
     <children>
         <AnchorPane layoutY="101.0" prefHeight="320.0" prefWidth="600.0" style="-fx-background-color: fafafa;">
             <children>
@@ -36,9 +40,9 @@
                         <Font name="BrushScriptStd" size="26.0" />
                     </font>
                 </Button>
-            <Label fx:id="error_label" alignment="CENTER" contentDisplay="CENTER" layoutX="217.0" layoutY="205.0" prefHeight="46.0" prefWidth="166.0" textFill="RED">
+            <Label fx:id="error_label" alignment="CENTER" contentDisplay="CENTER" layoutX="195.0" layoutY="205.0" prefHeight="46.0" prefWidth="211.0" textFill="RED">
                <font>
-                  <Font size="24.0" />
+                  <Font size="14.0" />
                </font></Label>
             </children>
         </AnchorPane>
