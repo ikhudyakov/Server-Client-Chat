@@ -364,13 +364,13 @@ public class ChatServer {
     private class Writer implements Runnable {
         @Override
         public void run() {
-            Thread.currentThread().setName("Writer");
+            Thread.currentThread().setName("Writer"); //для чего мы задаем имя Writer текущему потоку?
 
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    Messages msg = messageQueue.take();
+                    Messages msg = messageQueue.take();     // для чего это?
 
-                    if (msg instanceof ChatRoom) {
+                    if (msg instanceof ChatRoom) {      // если переменная относится к классу ChatRoom
                         ChatRoom chatRoom = (ChatRoom) msg;
 
                         Status msgOut = new Status(5, chatRoom.getUsers(), chatRoom.getId());
@@ -387,7 +387,7 @@ public class ChatServer {
                                 IOUtils.closeQuietly(connection.socket);
                             }
                         }
-                    } else if (msg instanceof Status) {
+                    } else if (msg instanceof Status) { // если переменная относится к классу Status
                         Status msgOut = (Status) msg;
 
                         String login = msgOut.getLogin();
@@ -403,7 +403,7 @@ public class ChatServer {
                             IOUtils.closeQuietly(connection.socket);
                         }
 
-                    } else if (msg instanceof TextMessage) {
+                    } else if (msg instanceof TextMessage) {    // если переменная относится к классу TextMessage
                         TextMessage msgOut = (TextMessage) msg;
                         //History.saveMessageInFile(msgOut);
                         History.saveMessageInDB(msgOut);
@@ -424,7 +424,7 @@ public class ChatServer {
                                 }
                             }
                         }
-                    } else if (msg instanceof FileMessage) {
+                    } else if (msg instanceof FileMessage) {    // если переменная относится к классу FileMessage
                         FileMessage fmsgOut = (FileMessage) msg;
 
                         for (ChatRoom list : chatRoomList) {

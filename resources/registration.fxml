@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="422.0" prefWidth="600.0" style="-fx-background-color: #2E3348;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controllers.RegController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="422.0" prefWidth="600.0" style="-fx-background-color: #2E3348;" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="client.controllers.RegController">
     <children>
         <AnchorPane layoutY="101.0" prefHeight="320.0" prefWidth="600.0" style="-fx-background-color: fafafa;">
             <children>
