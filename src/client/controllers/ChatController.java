@@ -62,6 +62,7 @@ public class ChatController {
                         chatMessages.add(text);
                         text = null;
                         chatClient.setCheckMes(false);
+
                     }
                 }
         );
